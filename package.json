@@ -1,0 +1,18 @@
+{
+  "name": "radio-ufficiale-udine-rp",
+  "version": "3.0.0",
+  "description": "Radio Ufficiale di Udine RP ITA: radio push-to-talk realistica con Centrale operativa, SOS, chiamate private e scansione",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node test/dev.js",
+    "test": "node test/test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

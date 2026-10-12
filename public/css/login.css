@@ -1,0 +1,98 @@
+/* =====================================================================
+   Accesso: radio 3D, spettro radio (cascata) e scheda d'accesso
+   ===================================================================== */
+
+.login {
+  position: fixed; inset: 0; overflow: auto; overscroll-behavior: contain;
+  background:
+    radial-gradient(50% 60% at 72% 45%, rgba(255, 160, 30, 0.10), transparent 70%),
+    radial-gradient(40% 50% at 15% 10%, rgba(62, 201, 255, 0.06), transparent 70%),
+    linear-gradient(180deg, #05070a, #090d12 60%, #05070a);
+}
+.login-bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 72% 46%, transparent 0 140px, rgba(255, 181, 46, 0.07) 141px 142px, transparent 143px 260px, rgba(255, 181, 46, 0.05) 261px 262px, transparent 263px 380px, rgba(255, 181, 46, 0.035) 381px 382px, transparent 383px),
+    linear-gradient(rgba(150, 180, 210, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(150, 180, 210, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 56px 56px, 56px 56px;
+  mask-image: radial-gradient(90% 80% at 60% 45%, #000 40%, transparent);
+  -webkit-mask-image: radial-gradient(90% 80% at 60% 45%, #000 40%, transparent);
+}
+.login-waterfall {
+  position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 34vh; pointer-events: none;
+  opacity: 0.55;
+  mask-image: linear-gradient(180deg, transparent, #000 45%);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 45%);
+}
+
+.login-wrap {
+  position: relative; z-index: 1; min-height: 100%;
+  display: grid; grid-template-columns: minmax(340px, 470px) minmax(0, 1fr); align-items: center; gap: 24px;
+  max-width: 1280px; margin: 0 auto; padding: calc(32px + var(--safe-t)) 40px 64px;
+}
+.login-left { display: grid; gap: 22px; animation: rise 700ms var(--ease-out) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+
+.brand-lg { display: flex; align-items: center; gap: 16px; }
+.brand-logo { width: 58px; height: 58px; flex: none; filter: drop-shadow(0 10px 24px rgba(255, 150, 20, 0.45)); }
+.brand-title { font: 700 clamp(34px, 4vw, 46px)/1 var(--font-display); letter-spacing: 0.005em; }
+.brand-sub { margin-top: 6px; color: var(--tx-2); font-size: 15px; }
+.brand-sub span { color: var(--amber); font-weight: 600; }
+
+.login-card {
+  padding: 24px; border-radius: 22px;
+  background: linear-gradient(180deg, rgba(22, 30, 39, 0.92), rgba(13, 18, 24, 0.94));
+  border: 1px solid var(--line-2);
+  box-shadow: var(--shadow-3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.login-head h2 { font-size: 23px; }
+.login-head p { margin-top: 5px; font-size: 14.5px; }
+.login-loading { display: flex; align-items: center; gap: 12px; color: var(--tx-2); font-size: 15px; padding: 6px 2px; }
+.login-err { color: #ff9a90; font-size: 14px; margin-top: 12px; line-height: 1.45; }
+.login-err:empty { display: none; }
+.login-card .hint { color: var(--tx-3); font-size: 13px; text-align: center; }
+#btnRetry { margin-top: 12px; }
+#insecureNote { margin-top: 14px; font-size: 13.5px; }
+
+.login-feats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; color: var(--tx-2); font-size: 14px; }
+.login-feats li { display: flex; align-items: center; gap: 10px; }
+.login-feats .ico { width: 18px; height: 18px; color: var(--amber); }
+
+.login-stage { position: relative; height: min(78vh, 760px); min-height: 460px; animation: fadein 1200ms ease-out both; }
+.hero3d { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-readout {
+  position: absolute; left: 50%; bottom: 2%; transform: translateX(-50%);
+  display: flex; gap: 18px; padding: 9px 16px; border-radius: 99px;
+  background: rgba(10, 14, 19, 0.7); border: 1px solid var(--line-2);
+  font: 400 12.5px var(--font-mono); color: var(--tx-3); white-space: nowrap;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.hero-readout b { color: var(--tx-1); font-weight: 500; }
+.hero-readout span { display: inline-flex; align-items: center; gap: 7px; }
+.hero-readout .dot { width: 7px; height: 7px; }
+
+.login-foot { position: absolute; left: 0; right: 0; bottom: calc(14px + var(--safe-b)); text-align: center; font: 400 12px var(--font-mono); color: var(--tx-3); z-index: 1; }
+
+/* accensione: la schermata si spegne verso la radio */
+.login.leaving { animation: leave 650ms var(--ease-in-out) forwards; }
+@keyframes leave { to { opacity: 0; filter: blur(6px); } }
+.app.entering .topbar { animation: dropin 520ms var(--ease-out) both; }
+.app.entering .side, .app.entering .log { animation: fadein 700ms ease-out 160ms both; }
+.app.entering .device { animation: deviceIn 900ms var(--ease-out) both; }
+.app.entering .controls { animation: rise 700ms var(--ease-out) 260ms both; }
+@keyframes dropin { from { opacity: 0; transform: translateY(-12px); } }
+@keyframes deviceIn { from { opacity: 0; transform: translateY(30px) scale(0.96); filter: blur(4px); } }
+
+@media (max-width: 980px) {
+  .login-wrap { grid-template-columns: 1fr; max-width: 560px; padding: calc(16px + var(--safe-t)) 18px 56px; gap: 0; }
+  .login-stage { order: -1; height: 300px; min-height: 0; margin: -10px 0 -18px; }
+  .hero-readout { display: none; }
+  .login-feats { grid-template-columns: 1fr 1fr; font-size: 13px; }
+  .brand-logo { width: 48px; height: 48px; }
+}
+@media (max-width: 420px) {
+  .login-card { padding: 18px; border-radius: 18px; }
+  .login-stage { height: 240px; }
+  .login-feats { grid-template-columns: 1fr; }
+}

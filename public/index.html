@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#07090c">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Radio Ufficiale di Udine RP ITA: la rete radio push-to-talk della community, con Centrale operativa, SOS e chiamate private">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Radio URP">
+  <title>Radio Ufficiale · Udine RP</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preload" href="fonts/chakra-petch-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/DSEG14Classic-Bold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/login.css">
+  <link rel="stylesheet" href="css/device.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<!-- ======================================================================= ICONE -->
+<svg class="sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lg-amber" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffc65a"/><stop offset="1" stop-color="#f08a12"/>
+    </linearGradient>
+  </defs>
+  <symbol id="logo" viewBox="0 0 48 48">
+    <rect x="2" y="2" width="44" height="44" rx="12" fill="url(#lg-amber)"/>
+    <rect x="2.75" y="2.75" width="42.5" height="42.5" rx="11.25" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.5"/>
+    <g fill="none" stroke="#1d1204" stroke-width="3" stroke-linecap="round">
+      <path d="M24 23.5v13.5M18.5 38h11"/>
+      <path d="M19.6 15.6a6.2 6.2 0 0 0 0 8.8M28.4 15.6a6.2 6.2 0 0 1 0 8.8"/>
+      <path d="M15.6 11.6a11.8 11.8 0 0 0 0 16.8M32.4 11.6a11.8 11.8 0 0 1 0 16.8"/>
+    </g>
+    <circle cx="24" cy="20" r="2.8" fill="#1d1204"/>
+  </symbol>
+  <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/></symbol>
+    <symbol id="i-mic-off" viewBox="0 0 24 24"><path d="M15 9.5V6a3 3 0 0 0-5.7-1.3M9 9v2a3 3 0 0 0 4.6 2.5M18.5 11a6.5 6.5 0 0 1-1 3.5M5.5 11a6.5 6.5 0 0 0 10 5.5M12 17.5V21M9 21h6M3.5 3.5l17 17"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5l4.5 4V5z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18.5 6a8.5 8.5 0 0 1 0 12"/></symbol>
+    <symbol id="i-volume-off" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5l4.5 4V5z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.7 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.8 7.5-9.5V6L12 3z"/><path d="M9 12l2.2 2.2L15.5 10"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-6 6.5-6s5.9 2.4 6.5 6"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8M17.5 14.4c2.2.8 3.6 2.9 4 5.6"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 4-6.5 8-6.5s7.2 2.5 8 6.5"/></symbol>
+    <symbol id="i-tower" viewBox="0 0 24 24"><circle cx="12" cy="9" r="2"/><path d="M12 11v10M9 21h6M8.2 5.2a5.4 5.4 0 0 0 0 7.6M15.8 5.2a5.4 5.4 0 0 1 0 7.6M5.4 2.4a9.4 9.4 0 0 0 0 13.2M18.6 2.4a9.4 9.4 0 0 1 0 13.2"/></symbol>
+    <symbol id="i-broadcast" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/></symbol>
+    <symbol id="i-siren" viewBox="0 0 24 24"><path d="M7 18v-5.5a5 5 0 0 1 10 0V18"/><path d="M4.5 18h15v3h-15z"/><path d="M12 2.5V4.5M4.6 5.6l1.4 1.4M19.4 5.6 18 7M2 12.5h2M20 12.5h2"/><path d="M10 13.5a2 2 0 0 1 2-2"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5.2 3.5h3.6l1.9 4.8-2.4 1.5a11.5 11.5 0 0 0 5.9 5.9l1.5-2.4 4.8 1.9v3.6a2 2 0 0 1-2 2A16.8 16.8 0 0 1 3.2 5.5a2 2 0 0 1 2-2z"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10.2 13.8M21 3l-6.8 18-4-7.2L3 9.8 21 3z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5L8 5.5z" fill="currentColor"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="currentColor"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10.5" rx="2.2"/><path d="M8.2 10.5V7.5a3.8 3.8 0 0 1 7.6 0v3M12 14.5v2.5"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12l6.3-6.3"/><circle cx="12" cy="12" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M3.5 10v4a1 1 0 0 0 1 1H7l8.5 5V4L7 9H4.5a1 1 0 0 0-1 1z"/><path d="M18.5 9a4 4 0 0 1 0 6M7.5 15l1.2 5h3l-1.1-4.2"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5M12 17.4v.1"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.1"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9.5 21H5.5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 16.5l4.5-4.5L16 7.5M20.5 12H9.5"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15.5" r="4"/><path d="M11 12.5l8.5-8.5M16.5 7l2.5 2.5M14 9.5l2 2"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v12M7 10.5l5 5 5-5M4.5 20.5h15"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 20.5v-12M7 13.5l5-5 5 5M4.5 3.5h15"/></symbol>
+    <symbol id="i-install" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v6.5M9.2 10.8 12 13.6l2.8-2.8M10.5 18h3"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19.5 8.5l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4h5v3M6 7l1 13.5h10L18 7M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="i-chev-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+    <symbol id="i-ear" viewBox="0 0 24 24"><path d="M6.5 9a5.5 5.5 0 0 1 11 0c0 3.4-3.2 4.3-3.2 7.4a3.1 3.1 0 0 1-5.8 1.5"/><path d="M9.5 9.5a2.5 2.5 0 0 1 5 0"/></symbol>
+    <symbol id="i-ear-off" viewBox="0 0 24 24"><path d="M6.5 9a5.5 5.5 0 0 1 9.6-3.7M17.5 9c0 3.4-3.2 4.3-3.2 7.4a3.1 3.1 0 0 1-5.8 1.5M3.5 3.5l17 17"/></symbol>
+    <symbol id="i-reply" viewBox="0 0 24 24"><path d="M9 15 4 10l5-5"/><path d="M4 10h10a6 6 0 0 1 6 6v3"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.1-7-11.5a7 7 0 0 1 14 0C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></symbol>
+    <symbol id="i-console" viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></symbol>
+    <symbol id="i-radio" viewBox="0 0 24 24"><rect x="6" y="7" width="12" height="14.5" rx="2.5"/><path d="M9 7V2.5M9.5 11h5M9 15v.1M12 15v.1M15 15v.1M9 18v.1M12 18v.1M15 18v.1"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 4.5h16v11.5H9.5L4 20.5V4.5z"/><path d="M8 9h8M8 12.5h5"/></symbol>
+    <symbol id="i-private" viewBox="0 0 24 24"><circle cx="9.5" cy="8" r="3.5"/><path d="M3 20c.6-3.4 3.2-5.6 6.5-5.6"/><rect x="13.5" y="14.5" width="7.5" height="6" rx="1.3"/><path d="M15.2 14.5V13a2 2 0 0 1 4 0v1.5"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 3v8.5"/><path d="M6.3 6.6a8 8 0 1 0 11.4 0"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.6-4.4L4 8.5M4 3.5v5h5M4 13a8 8 0 0 0 14.6 4.4L20 15.5M20 20.5v-5h-5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12.5" height="12.5" rx="2"/><path d="M15.5 8.5V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8.5a2 2 0 0 0 2 2h3.5"/></symbol>
+    <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6.5 10v.1M10 10v.1M14 10v.1M17.5 10v.1M6.5 14v.1M17.5 14v.1M9.5 14h5"/></symbol>
+    <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l2.5-6.5 5 13 2.5-6.5h4"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M5 20V11M10 20V5M15 20v-7M20 20V8M3 20.5h18"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.6"/><rect x="3" y="13" width="18" height="7" rx="1.6"/><path d="M7 7.5v.1M7 16.5v.1M11 7.5h6M11 16.5h6"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.4l-5.2 2.8 1-5.9-4.3-4.1 5.9-.8L12 3z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3"/></symbol>
+    <symbol id="i-dice" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><path d="M8.5 8.5v.1M15.5 8.5v.1M12 12v.1M8.5 15.5v.1M15.5 15.5v.1"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 12h1.5M7 8.5v7M10.5 5v14M14 9v6M17.5 7v10M21 12h.1"/></symbol>
+    <symbol id="i-status" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/></symbol>
+    <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2.5l3 3-3 3M3.5 11V9.5a4 4 0 0 1 4-4H20M7 21.5l-3-3 3-3M20.5 13v1.5a4 4 0 0 1-4 4H4"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 8l4.2 4L12 5l4.8 7L21 8l-2 11.5H5L3 8z"/></symbol>
+    <symbol id="i-gamepad" viewBox="0 0 24 24"><path d="M6.5 8.5h11a4 4 0 0 1 3.9 4.9l-.9 4a2.5 2.5 0 0 1-4.3 1.1L14 16h-4l-2.2 2.5a2.5 2.5 0 0 1-4.3-1.1l-.9-4a4 4 0 0 1 3.9-4.9z"/><path d="M8 11.2v3.2M6.4 12.8h3.2M15.5 12v.1M17.5 13.8v.1"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.8 1.8H4.2L6 16.5z"/><path d="M10 21h4"/></symbol>
+    <symbol id="i-screen" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20.5h8M12 16v4.5"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.3-1-1.6-1-2.8 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><path d="M7.5 11v.1M10 7v.1M14.5 7v.1"/></symbol>
+    <symbol id="i-vibrate" viewBox="0 0 24 24"><rect x="7.5" y="4" width="9" height="16" rx="2"/><path d="M3.5 8.5v7M20.5 8.5v7"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 20v-3M9 20v-6M14 20v-9M19 20V5"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6M3.5 4v4h4"/><path d="M12 8v4.5l3 2"/></symbol>
+    <symbol id="i-headset" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13.5" width="4" height="6" rx="1.5"/><rect x="17" y="13.5" width="4" height="6" rx="1.5"/><path d="M19 19.5c0 1.4-1.6 2-4 2h-2"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M3.5 5h17l-6.5 8v6l-4 1.5V13L3.5 5z"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3.5l1.9 5.1 5.1 1.9-5.1 1.9L12 17.5l-1.9-5.1L5 10.5l5.1-1.9L12 3.5zM18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z"/></symbol>
+  </g>
+</svg>
+
+<!-- ======================================================================= ACCESSO -->
+<section id="login" class="login">
+  <canvas id="waterfall" class="login-waterfall" aria-hidden="true"></canvas>
+  <div class="login-bg" aria-hidden="true"></div>
+
+  <div class="login-wrap">
+    <div class="login-left">
+      <div class="brand-lg">
+        <svg class="brand-logo" viewBox="0 0 48 48" aria-hidden="true"><use href="#logo"/></svg>
+        <div>
+          <h1 class="brand-title">Radio Ufficiale</h1>
+          <p class="brand-sub"><span id="serverName">Udine RP ITA</span> · rete radio della community</p>
+        </div>
+      </div>
+
+      <div class="login-card">
+        <div id="loadingBox" class="login-loading"><span class="spinner" aria-hidden="true"></span> Aggancio alla rete radio…</div>
+
+        <!-- accesso con account -->
+        <form id="loginForm" class="stack-lg" hidden autocomplete="on">
+          <div class="login-head">
+            <h2>Accendi la radio</h2>
+            <p class="muted">Entra con l'account che ti ha dato lo Staff.</p>
+          </div>
+          <label class="field"><span class="field-label">Nome utente</span>
+            <input id="inUser" class="input" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+          <label class="field"><span class="field-label">Password</span>
+            <input id="inPass" class="input" name="password" type="password" autocomplete="current-password" required></label>
+          <button class="btn btn-primary btn-xl btn-go" type="submit"><svg class="ico"><use href="#i-power"/></svg><span>Accendi e collegati</span></button>
+          <p class="hint">Non hai un account? Chiedilo al Founder o allo Staff del server.</p>
+        </form>
+
+        <!-- sessione già salvata -->
+        <form id="resumeForm" class="stack-lg" hidden>
+          <div class="login-head">
+            <h2>Bentornato, <span id="resumeName"></span></h2>
+            <p class="muted">La tua radio è pronta: premi per accenderla.</p>
+          </div>
+          <button class="btn btn-primary btn-xl btn-go" type="submit"><svg class="ico"><use href="#i-power"/></svg><span>Accendi la radio</span></button>
+          <button id="btnSwitch" class="link-btn" type="button">Entra con un altro account</button>
+        </form>
+
+        <!-- primo avvio: creazione del Founder -->
+        <form id="setupForm" class="stack" hidden autocomplete="off">
+          <div class="login-head">
+            <h2>Prima accensione</h2>
+            <p class="muted">Crea l'account del <b>Founder</b>: potrà creare ruoli, staff, utenti e canali.</p>
+          </div>
+          <label class="field"><span class="field-label">Codice di installazione</span>
+            <input id="suCode" class="input" inputmode="numeric" autocomplete="one-time-code" required>
+            <small class="field-hint">È nella finestra nera del server, oppure su Render → Logs.</small></label>
+          <div class="row-2">
+            <label class="field"><span class="field-label">Nome utente</span>
+              <input id="suUser" class="input" autocapitalize="none" spellcheck="false" required placeholder="es. matteo"></label>
+            <label class="field"><span class="field-label">Password</span>
+              <input id="suPass" class="input" type="password" autocomplete="new-password" required minlength="6" placeholder="almeno 6 caratteri"></label>
+          </div>
+          <div class="row-2">
+            <label class="field"><span class="field-label">Nome RP</span>
+              <input id="suNome" class="input" maxlength="24" required placeholder="es. Marco Bianchi"></label>
+            <label class="field"><span class="field-label">Sigla <em>(facoltativa)</em></span>
+              <input id="suSigla" class="input" maxlength="16" placeholder="es. Centrale 1"></label>
+          </div>
+          <button class="btn btn-primary btn-xl btn-go" type="submit"><svg class="ico"><use href="#i-crown"/></svg><span>Crea il Founder e accendi</span></button>
+        </form>
+
+        <p id="loginErr" class="login-err" role="alert"></p>
+        <button id="btnRetry" class="btn btn-xl" type="button" hidden><svg class="ico"><use href="#i-refresh"/></svg><span>Riprova</span></button>
+        <p id="insecureNote" class="note note-warn" hidden>
+          Questo indirizzo non è sicuro (<b>http://</b>): potrai <b>ascoltare</b> ma non <b>parlare</b>.
+          Per usare il microfono apri il link che inizia con <b>https://</b>.
+        </p>
+      </div>
+
+      <ul class="login-feats" aria-label="Cosa puoi fare">
+        <li><svg class="ico"><use href="#i-mic"/></svg>Parli e ti sentono in diretta</li>
+        <li><svg class="ico"><use href="#i-broadcast"/></svg>Centrale operativa su più canali</li>
+        <li><svg class="ico"><use href="#i-siren"/></svg>SOS con sirena e posizione</li>
+        <li><svg class="ico"><use href="#i-gamepad"/></svg>Tasto PTT anche dentro al gioco</li>
+      </ul>
+    </div>
+
+    <div class="login-stage" aria-hidden="true">
+      <canvas id="hero3d" class="hero3d"></canvas>
+      <div class="hero-readout">
+        <span><i class="dot dot-live"></i><b id="infoOnline">—</b> in linea</span>
+        <span><b id="infoCanali">—</b> canali</span>
+        <span>TETRA · <b>UDINE</b></span>
+      </div>
+    </div>
+  </div>
+  <footer class="login-foot"><span id="loginVersion">v3</span> · Radio Ufficiale di Udine RP ITA</footer>
+</section>
+
+<!-- ======================================================================= RADIO -->
+<div id="app" class="app" hidden>
+  <header class="topbar">
+    <button id="btnMenu" class="icon-btn only-narrow" type="button" aria-label="Canali e rubrica"><svg class="ico"><use href="#i-menu"/></svg></button>
+    <div class="top-brand">
+      <svg class="top-logo" viewBox="0 0 48 48" aria-hidden="true"><use href="#logo"/></svg>
+      <div class="top-brand-txt"><b>Radio Ufficiale</b><small id="sideServer">Udine RP ITA</small></div>
+    </div>
+    <div id="ticker" class="ticker" hidden><svg class="ico"><use href="#i-megaphone"/></svg><div class="ticker-track"><span id="tickerText"></span></div></div>
+    <div class="top-right">
+      <span id="pcKey" class="pill pill-ok" title="Tasto PTT per PC collegato" hidden><svg class="ico"><use href="#i-keyboard"/></svg><span class="hide-sm">Tasto PC</span></span>
+      <span id="netStatus" class="net" data-s="off" title="Segnale verso il server">
+        <span class="net-bars"><i></i><i></i><i></i><i></i></span><span class="net-txt">Offline</span>
+      </span>
+      <button id="btnInstall" class="icon-btn" type="button" hidden aria-label="Installa l'app" title="Installa l'app"><svg class="ico"><use href="#i-install"/></svg></button>
+      <button id="btnAdmin" class="icon-btn" type="button" hidden aria-label="Pannello Founder e Staff" title="Pannello Founder / Staff"><svg class="ico"><use href="#i-shield"/></svg></button>
+      <button id="btnSettings" class="icon-btn" type="button" aria-label="Impostazioni" title="Impostazioni"><svg class="ico"><use href="#i-sliders"/></svg></button>
+      <button id="btnMe" class="me-btn" type="button" aria-label="Il tuo stato e account"></button>
+    </div>
+  </header>
+
+  <div id="audioBanner" class="banner" hidden role="button" tabindex="0"><svg class="ico"><use href="#i-volume-off"/></svg> Audio bloccato dal browser: <b>tocca qui</b> per sentire la radio</div>
+
+  <div class="shell">
+    <!-- ------------------------------------------------ colonna sinistra: canali e rubrica -->
+    <aside id="side" class="side" aria-label="Canali e rubrica">
+      <div class="seg seg-full side-tabs" role="tablist">
+        <button id="tabCanali" class="on" type="button" role="tab" aria-selected="true" data-tab="canali"><svg class="ico"><use href="#i-tower"/></svg>Canali</button>
+        <button id="tabRubrica" type="button" role="tab" aria-selected="false" data-tab="rubrica"><svg class="ico"><use href="#i-users"/></svg>Rubrica <span id="rubricaCount" class="count"></span></button>
+      </div>
+      <div id="panelCanali" class="side-panel">
+        <div id="channelList" class="ch-list"></div>
+      </div>
+      <div id="panelRubrica" class="side-panel" hidden>
+        <label class="search"><svg class="ico"><use href="#i-search"/></svg><input id="rosterSearch" placeholder="Cerca nome, sigla o ruolo" autocomplete="off"></label>
+        <div id="roster" class="roster"></div>
+      </div>
+    </aside>
+    <div id="scrim" class="scrim"></div>
+
+    <!-- ------------------------------------------------ centro: la radio -->
+    <main class="stage">
+      <div id="viewSwitch" class="seg view-switch" hidden>
+        <button type="button" data-view="radio" class="on"><svg class="ico"><use href="#i-radio"/></svg>Radio</button>
+        <button type="button" data-view="console"><svg class="ico"><use href="#i-console"/></svg>Console Centrale</button>
+      </div>
+
+      <div class="stage-main">
+        <div id="deviceWrap" class="device-wrap">
+          <div class="device" id="device" data-skin="nero">
+            <div class="dv-top">
+              <div class="dv-antenna"><span class="dv-ant-tip"></span></div>
+              <svg class="dv-waves" viewBox="0 0 120 120" aria-hidden="true"><path d="M44 52a22 22 0 0 1 32 0"/><path d="M34 42a36 36 0 0 1 52 0"/><path d="M24 32a50 50 0 0 1 72 0"/></svg>
+              <button id="dvEmerg" class="dv-emerg" type="button" aria-label="Tasto emergenza: tieni premuto per l'SOS" title="Emergenza: tieni premuto">
+                <svg class="hold-ring" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17"/></svg>
+              </button>
+              <span id="dvLed" class="dv-led" data-led="off" aria-hidden="true"></span>
+              <div id="dvKnob" class="dv-knob" role="slider" tabindex="0" aria-label="Selettore canali: gira per cambiare canale" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1">
+                <div id="dvKnobRot" class="dv-knob-rot"><i></i></div>
+              </div>
+            </div>
+            <div class="dv-body">
+              <button id="dvPtt" class="dv-ptt" type="button" aria-label="Tasto PTT laterale: tieni premuto per parlare" title="PTT"></button>
+              <div class="dv-vol">
+                <button id="dvVolUp" type="button" aria-label="Alza il volume" title="Volume +"></button>
+                <button id="dvVolDown" type="button" aria-label="Abbassa il volume" title="Volume −"></button>
+              </div>
+              <div class="dv-grille" aria-hidden="true"><span id="dvGlow" class="dv-glow"></span></div>
+              <div class="dv-bezel">
+                <div id="lcd" class="lcd" data-mode="off" data-bl="ambra" aria-live="polite">
+                  <div class="lcd-status">
+                    <span id="lcdSig" class="lcd-sig" data-bars="0"><i></i><i></i><i></i><i></i></span>
+                    <span id="lcdFlags" class="lcd-flags"></span>
+                    <span id="lcdClock" class="lcd-clock">--:--</span>
+                    <span id="lcdBat" class="lcd-bat"><i></i></span>
+                  </div>
+                  <div id="lcdMode" class="lcd-mode"></div>
+                  <div class="lcd-main"><span id="lcdGhost" class="lcd-ghost" aria-hidden="true"></span><span id="lcdMain" class="lcd-text"></span></div>
+                  <div id="lcdSub" class="lcd-sub"></div>
+                  <canvas id="lcdScope" class="lcd-scope" width="440" height="56"></canvas>
+                  <div class="lcd-soft"><span id="lcdSk1"></span><span id="lcdSk2"></span><span id="lcdSk3"></span></div>
+                  <div id="lcdPop" class="lcd-pop" hidden></div>
+                  <div class="lcd-glass" aria-hidden="true"></div>
+                  <button id="lcdPrev" class="dv-chnav prev" type="button" aria-label="Canale precedente"><svg class="ico"><use href="#i-left"/></svg></button>
+                  <button id="lcdNext" class="dv-chnav next" type="button" aria-label="Canale successivo"><svg class="ico"><use href="#i-right"/></svg></button>
+                </div>
+              </div>
+              <div class="dv-keys">
+                <button class="dv-soft" type="button" data-sk="1" aria-label="Tasto funzione sinistro"></button>
+                <button class="dv-nav" type="button" data-sk="2" aria-label="Tasto centrale"><i></i></button>
+                <button class="dv-soft" type="button" data-sk="3" aria-label="Tasto funzione destro"></button>
+              </div>
+              <div id="dvPad" class="dv-pad" aria-label="Tastierino: componi il numero del canale">
+                <button type="button" data-key="1">1<small>&nbsp;</small></button>
+                <button type="button" data-key="2">2<small>ABC</small></button>
+                <button type="button" data-key="3">3<small>DEF</small></button>
+                <button type="button" data-key="4">4<small>GHI</small></button>
+                <button type="button" data-key="5">5<small>JKL</small></button>
+                <button type="button" data-key="6">6<small>MNO</small></button>
+                <button type="button" data-key="7">7<small>PQRS</small></button>
+                <button type="button" data-key="8">8<small>TUV</small></button>
+                <button type="button" data-key="9">9<small>WXYZ</small></button>
+                <button type="button" data-key="*">✱<small>SCAN</small></button>
+                <button type="button" data-key="0">0<small>CH</small></button>
+                <button type="button" data-key="#">#<small>STATO</small></button>
+              </div>
+              <div class="dv-foot"><span class="dv-model">URP<b>·</b>T1</span><span class="dv-mic" aria-hidden="true"></span><span class="dv-brand">UDINE RP</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Console della Centrale (solo con il permesso) -->
+        <section id="console" class="console" hidden aria-label="Console della Centrale"></section>
+
+        <!-- comandi -->
+        <div class="controls">
+          <div id="dispStrip" class="disp-strip" hidden></div>
+          <div id="privBar" class="priv-bar" hidden></div>
+          <div class="ctl-row">
+            <button id="btnSos" class="ctl-side ctl-sos" type="button" aria-label="SOS: tieni premuto" title="SOS: tieni premuto">
+              <svg class="hold-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29"/></svg>
+              <svg class="ico"><use href="#i-siren"/></svg><small>SOS</small>
+            </button>
+            <button id="ptt" class="ptt" type="button" data-state="idle">
+              <span class="ptt-halo" aria-hidden="true"><i></i><i></i><i></i></span>
+              <svg class="ptt-ring" viewBox="0 0 200 200" aria-hidden="true"><circle class="ptt-ring-bg" cx="100" cy="100" r="94"/><circle id="pttRing" class="ptt-ring-fg" cx="100" cy="100" r="94"/></svg>
+              <span class="ptt-core">
+                <svg class="ico ptt-ico"><use id="pttIcoUse" href="#i-mic"/></svg>
+                <span id="pttLabel" class="ptt-label">PARLA</span>
+                <span id="pttSub" class="ptt-sub">tieni premuto</span>
+              </span>
+            </button>
+            <button id="btnSpeaker" class="ctl-side" type="button" aria-label="Audio acceso o spento" title="Audio on/off">
+              <svg class="ico"><use id="spkIco" href="#i-volume"/></svg><small id="spkLbl">AUDIO</small>
+            </button>
+          </div>
+          <div id="callBar" class="callbar" hidden>
+            <button id="btnCall" class="call-ptt" type="button">
+              <svg class="ico"><use href="#i-phone"/></svg>
+              <span class="call-txt"><b id="callTitle">Parla con la Centrale</b><small id="callSub">tieni premuto</small></span>
+            </button>
+            <button id="btnRequest" class="call-req" type="button"><svg class="ico"><use href="#i-chat"/></svg>Richiesta</button>
+          </div>
+          <div id="pttHint" class="ptt-hint"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ------------------------------------------------ destra: registro -->
+    <section id="logPanel" class="log" aria-label="Registro del canale">
+      <div class="log-head">
+        <div class="log-title">
+          <span id="chIcon" class="log-ic">📻</span>
+          <div><h2 id="chName">—</h2><small id="chMeta"></small></div>
+        </div>
+        <div id="feedFilter" class="seg seg-sm" role="tablist" aria-label="Filtra il registro">
+          <button type="button" class="on" data-f="tutto">Tutto</button>
+          <button type="button" data-f="voce">Voce</button>
+          <button type="button" data-f="testo">Testo</button>
+          <button type="button" data-f="avvisi">Avvisi</button>
+        </div>
+      </div>
+      <div id="feed" class="feed" data-filter="tutto" aria-live="polite"></div>
+      <form id="composer" class="composer">
+        <div id="composeTarget" class="compose-target" hidden></div>
+        <div class="compose-row">
+          <input id="inText" class="input" maxlength="300" placeholder="Scrivi al canale…" autocomplete="off" enterkeyhint="send">
+          <button class="btn btn-primary send" type="submit" aria-label="Invia"><svg class="ico"><use href="#i-send"/></svg></button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- schede per il telefono -->
+  <nav id="mobileTabs" class="mobile-tabs" aria-label="Sezioni">
+    <button type="button" data-m="registro" class="on"><svg class="ico"><use href="#i-history"/></svg>Registro</button>
+    <button type="button" data-m="rubrica"><svg class="ico"><use href="#i-users"/></svg>Rubrica</button>
+    <button type="button" data-m="canali"><svg class="ico"><use href="#i-tower"/></svg>Canali</button>
+  </nav>
+</div>
+
+<!-- ======================================================================= ALLARMI: SOS E COMUNICATI -->
+<div id="alarm" class="alarm" data-kind="sos" hidden>
+  <div class="alarm-beacon" aria-hidden="true"></div>
+  <div class="alarm-card" role="alertdialog" aria-labelledby="alarmTitle" aria-describedby="alarmText">
+    <div class="alarm-top">
+      <svg class="ico alarm-ico"><use id="alarmIco" href="#i-siren"/></svg>
+      <div id="alarmTitle" class="alarm-title">SOS</div>
+    </div>
+    <div id="alarmWho" class="alarm-who"></div>
+    <div id="alarmRole" class="alarm-role"></div>
+    <div id="alarmText" class="alarm-text" hidden></div>
+    <div id="alarmWhereBox" class="alarm-where">
+      <small id="alarmWhereLbl"><svg class="ico"><use href="#i-pin"/></svg>POSIZIONE</small>
+      <div id="alarmWhere"></div>
+    </div>
+    <div id="alarmChan" class="alarm-chan"></div>
+    <div id="alarmAcks" class="alarm-acks"></div>
+    <div class="alarm-actions">
+      <button id="alarmAck" class="btn btn-xl alarm-ack" type="button">Ricevuto, intervengo</button>
+      <div class="alarm-row">
+        <button id="alarmRepeat" class="btn" type="button"><svg class="ico"><use href="#i-volume"/></svg>Ripeti</button>
+        <button id="alarmClose" class="btn" type="button"><svg class="ico"><use href="#i-close"/></svg>Chiudi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================= PANNELLO FOUNDER / STAFF -->
+<div id="adminPanel" class="admin" hidden></div>
+
+<!-- ======================================================================= FINESTRE E AVVISI -->
+<div id="modal" class="modal" hidden>
+  <form id="modalForm" class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle" autocomplete="off">
+    <div class="modal-head">
+      <h2 id="modalTitle"></h2>
+      <button id="modalX" class="icon-btn" type="button" aria-label="Chiudi"><svg class="ico"><use href="#i-close"/></svg></button>
+    </div>
+    <div id="modalBody" class="modal-body"></div>
+    <div id="modalActions" class="modal-actions"></div>
+  </form>
+</div>
+<div id="popover" class="popover" hidden></div>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
