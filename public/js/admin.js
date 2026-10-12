@@ -7,7 +7,7 @@
  * - Server (solo Founder): nome, durata trasmissioni, archivio dati, backup e ripristino
  */
 import { el, icon, button, ago, fmtTime, fmtDur, displayName, copyText, saveFile, statoInfo, statusPill, initials } from './util.js';
-import { modal, toast, confirmBox, field, checkbox, input } from './ui-kit.js';
+import { modal, toast, confirmBox, field, checkbox, input, segmented } from './ui-kit.js';
 
 const CH_ICONS = ['📻', '🚨', '🚓', '🚔', '🛡️', '🚦', '🚑', '🚒', '🔧', '⭐', '🔁', '🏥', '🚁', '🕵️', '💼', '🏛️', '⚖️', '🎖️', '🚛', '🚕', '🏪', '🔒', '📡', '🎮'];
 const ROLE_ICONS = ['👤', '⭐', '🎖️', '👮', '🚓', '🚔', '🛡️', '🚦', '🚑', '🚒', '🔧', '🕵️', '💼', '⚖️', '🏛️', '🚕', '🎩', '🪖', '🧑‍⚕️', '🧑‍🚒', '📡'];
@@ -472,6 +472,10 @@ export function initAdmin(R) {
       if (c.password) badges.append(badge('password: ' + c.password, 'gold', 'lock'));
       if (c.ruoli.length) badges.append(badge('solo: ' + c.ruoli.map((id) => R.roleInfo(id).nome).join(', '), 'blue', 'users'));
       if (c.riceveSos) badges.append(badge('Centrale: SOS e chiamate da tutti', 'red', 'siren'));
+      const pc = c.parlaCon || { tutti: false, canali: [] };
+      if (pc.tutti) badges.append(badge('parla con tutte le radio', 'green', 'broadcast'));
+      else if (pc.canali.length) badges.append(badge('parla anche con: ' + pc.canali.map((id) => (data.channels.find((x) => x.id === id) || { nome: id }).nome).join(', '), 'green', 'broadcast'));
+      else if (!c.eco) badges.append(badge('parla solo nel suo canale', '', 'lock'));
       if (c.eco) badges.append(badge('canale eco', 'blue', 'repeat'));
       badges.append(badge(`${c.utenti} dentro`, '', 'user'));
       main.append(badges);
@@ -511,6 +515,43 @@ export function initAdmin(R) {
       'Chi è in questo canale sente ogni SOS e risponde alle chiamate «Parla con la Centrale» fatte da qualsiasi canale. Il nome di questo canale è anche la firma dei comunicati.'
     );
     const eco = checkbox('Canale eco (prova audio)', isNew ? false : c.eco, 'Chi parla qui si risente subito dopo: serve per provare microfono e casse.');
+    // con quali altre radio si può parlare da questo canale (solo il Founder lo decide)
+    const pc = (c && c.parlaCon) || { tutti: false, canali: [] };
+    let mode = pc.tutti ? 'tutti' : pc.canali.length ? 'alcuni' : 'nessuno';
+    const talkList = el('div', 'check-grid');
+    for (const x of data.channels) {
+      if (c && x.id === c.id) continue;
+      if (x.eco) continue;
+      const ck = checkbox(`${x.icona} ${x.nome}`, pc.canali.includes(x.id));
+      ck.dataset.id = x.id;
+      talkList.append(ck);
+    }
+    const talkHint = el('small', 'fld-hint');
+    const syncTalk = () => {
+      talkList.hidden = mode !== 'alcuni';
+      talkHint.textContent =
+        mode === 'tutti'
+          ? 'Chi è in questo canale parla, scrive e manda comunicati a TUTTE le radio (anche quelle create dopo), come la Centrale e lo Staff.'
+          : mode === 'alcuni'
+            ? 'Chi è in questo canale parla e scrive anche ai canali spuntati qui sotto.'
+            : 'Come le fazioni: si parla solo dentro questo canale. Alla Centrale si mandano comunque messaggi vocali, richieste e SOS.';
+    };
+    const talkSeg = segmented(
+      [
+        ['nessuno', 'Solo il suo canale', 'lock'],
+        ['tutti', 'Tutte le radio', 'broadcast'],
+        ['alcuni', 'Solo alcune', 'filter'],
+      ],
+      mode,
+      (v) => {
+        mode = v;
+        syncTalk();
+      },
+      'seg-full seg-sm'
+    );
+    syncTalk();
+    const talkBox = el('div', 'stack');
+    talkBox.append(talkSeg, talkHint, talkList);
     const roleBox = el('div', 'check-grid');
     const chosen = new Set(isNew ? [] : c.ruoli);
     for (const r of data.roles) {
@@ -526,10 +567,11 @@ export function initAdmin(R) {
       field('Icona', icRow),
       field('Descrizione (facoltativa)', desc),
       field('Password del canale', pass, 'Chi non ha "accesso a tutti i canali" dovrà scriverla per entrare. Vuota = canale libero.'),
-      field('Chi può vedere ed entrare', roleBox, 'Nessuno spuntato = tutti. Il Founder e i ruoli con "accesso a tutti i canali" entrano sempre.'),
-      sos,
-      eco
+      field('Chi può vedere ed entrare', roleBox, 'Nessuno spuntato = tutti. Il Founder e i ruoli con "accesso a tutti i canali" entrano sempre.')
     );
+    if (perms().founder) f.append(field('Può parlare con le altre radio?', talkBox));
+    else f.append(el('p', 'muted small', 'Con quali altre radio si parla da questo canale lo decide solo il Founder.'));
+    f.append(sos, eco);
     modal.open({
       title: isNew ? 'Nuovo canale' : 'Modifica ' + c.nome,
       icon: isNew ? 'plus' : 'edit',
@@ -543,7 +585,13 @@ export function initAdmin(R) {
           primary: true,
           onClick: async () => {
             const ruoli = [...roleBox.querySelectorAll('.chk')].filter((x) => x.cb.checked).map((x) => x.dataset.id);
-            await R.request('channel_save', { id: isNew ? undefined : c.id, nome: nome.value, icona: icona.value, descrizione: desc.value, password: pass.value, ruoli, riceveSos: sos.cb.checked, eco: eco.cb.checked });
+            const payload = { id: isNew ? undefined : c.id, nome: nome.value, icona: icona.value, descrizione: desc.value, password: pass.value, ruoli, riceveSos: sos.cb.checked, eco: eco.cb.checked };
+            if (perms().founder) {
+              const canali = [...talkList.querySelectorAll('.chk')].filter((x) => x.cb.checked).map((x) => x.dataset.id);
+              if (mode === 'alcuni' && !canali.length) throw new Error('Spunta almeno un canale con cui può parlare (o scegli «Solo il suo canale»)');
+              payload.parlaCon = { tutti: mode === 'tutti', canali: mode === 'alcuni' ? canali : [] };
+            }
+            await R.request('channel_save', payload);
             toast(isNew ? 'Canale creato' : 'Canale aggiornato', { kind: 'ok' });
             load();
           },

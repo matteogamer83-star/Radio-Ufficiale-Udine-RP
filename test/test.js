@@ -420,6 +420,44 @@ async function main() {
     const anC = await waitFor(C, 'annuncio');
     ok(anC.msg.tutti && anC.msg.livello === 'allerta' && !!(await waitFor(M, 'annuncio')), 'comunicato a TUTTI i canali: arriva ovunque, anche nel canale nuovo');
 
+    // ---------------------------------------------------- solo Centrale e Staff parlano con le altre radio
+    st = await req(F, 'state');
+    const cfgOf = (id) => st.channels.find((c) => c.id === id);
+    ok(cfgOf('centrale').parlaCon.tutti && cfgOf('staff').parlaCon.tutti && !cfgOf('polizia').parlaCon.tutti && !cfgOf('polizia').parlaCon.canali.length, 'di base parlano con tutte le radio solo la Centrale e lo Staff');
+    ok(!cfgOf(rb.id).parlaCon.tutti, 'un canale nuovo non parla con le altre radio (finché il Founder non lo decide)');
+    for (const r of [M, L, G, P, C, D, F]) {
+      r.msgs = [];
+      r.bins = [];
+    }
+    // il Founder è in Generale: anche con il permesso Centrale da qui non parla alle altre radio
+    await joinCh(F, 'generale');
+    send(F, { t: 'ptt_start', diramazione: true, canali: ['polizia', '118'] });
+    ok((await waitFor(F, 'ptt_ok')).canali === 1 && (await noMsg(P, 'talk_start', 300)), 'da un canale normale non si parla alle altre radio (nemmeno col permesso Centrale)');
+    send(F, { t: 'ptt_stop' });
+    send(F, { t: 'annuncio', livello: 'info', text: 'prova', tutti: true });
+    ok((await waitFor(F, 'error')).code === 'canale', 'i comunicati partono solo dal canale della Centrale o dello Staff');
+    // il Founder decide: la Polizia può parlare anche con il 118 (e solo con lui)
+    await req(F, 'channel_save', { ...cfgOf('polizia'), parlaCon: { tutti: false, canali: ['118', 'centrale'] } });
+    await req(S, 'channel_save', { ...cfgOf('carabinieri'), parlaCon: { tutti: true, canali: [] } });
+    st = await req(F, 'state');
+    ok(cfgOf('polizia').parlaCon.canali.join() === '118,centrale' && !cfgOf('carabinieri').parlaCon.tutti, 'il Founder sceglie con quali radio parla un canale (lo Staff non può cambiarlo)');
+    await joinCh(M, 'polizia');
+    const mj = (await waitFor(M, 'channels', (m) => m.channels.find((c) => c.id === 'polizia').verso.includes('118'))).channels.find((c) => c.id === 'polizia');
+    ok(mj.verso.sort().join() === '118,centrale', 'la radio sa con quali canali può parlare da qui');
+    for (const r of [M, L, G, P, C, D, F]) {
+      r.msgs = [];
+      r.bins = [];
+    }
+    send(M, { t: 'ptt_start', diramazione: true, canali: ['118', rb.id, 'carabinieri'] });
+    const mok = await waitFor(M, 'ptt_ok');
+    const lts = await waitFor(L, 'talk_start');
+    ok(mok.canali === 2 && lts.user.nome === 'Polizia di Stato' && lts.user.uid === 'centrale', 'dalla Polizia (permesso dal Founder) si parla anche al 118, firmato "Polizia di Stato"');
+    ok((await noMsg(C, 'talk_start', 300)) && !mok.prio, 'gli altri canali (non scelti dal Founder) non sentono niente, e senza permesso Centrale non c\'è priorità');
+    send(M, { t: 'ptt_stop' });
+    await waitFor(L, 'talk_end');
+    await req(F, 'channel_save', { ...cfgOf('polizia'), parlaCon: { tutti: false, canali: [] } });
+    await joinCh(M, 'generale');
+
     // ---------------------------------------------------- tutti i canali parlano con la Centrale
     ok(M.welcome.centrale && M.welcome.centrale.nome === 'Centrale Operativa 112', 'ogni radio sa qual è la Centrale');
     for (const r of [M, L, G, P, C, D, F]) {
@@ -482,24 +520,28 @@ async function main() {
       r.bins = [];
     }
     send(M, { t: 'ptt_start', privato: C.welcome.me.uid });
-    const pok = await waitFor(M, 'ptt_ok');
+    ok(/tuo canale/.test((await waitFor(M, 'ptt_fail')).msg), 'le fazioni NON chiamano in privato chi è in un altro canale');
+    send(D, { t: 'ptt_start', privato: C.welcome.me.uid });
+    const pok = await waitFor(D, 'ptt_ok');
     const pts = await waitFor(C, 'talk_start');
-    ok(pok.privato && pok.ascoltatori === 1 && pts.privato && pts.privato.uid === C.welcome.me.uid && pts.user.nome === 'Mario Rossi', 'CHIAMATA PRIVATA: Carlo riceve la chiamata di Mario (da un altro canale)');
+    ok(pok.privato && pok.ascoltatori === 1 && pts.privato && pts.privato.uid === C.welcome.me.uid && pts.user.nome === 'Sara Gialli', 'CHIAMATA PRIVATA: dalla Centrale si chiama in privato chiunque');
     send(G, { t: 'ptt_start', privato: C.welcome.me.uid });
     ok((await waitFor(G, 'ptt_busy')).privato, 'se Carlo è già in una chiamata privata: occupato');
     const prAudio = tone(500, 610);
-    for (let i = 0; i < prAudio.length; i += 1280) M.ws.send(prAudio.subarray(i, i + 1280));
-    send(M, { t: 'ptt_stop' });
-    const pte = await waitFor(C, 'talk_end', (m) => m.user.nome === 'Mario Rossi');
+    for (let i = 0; i < prAudio.length; i += 1280) D.ws.send(prAudio.subarray(i, i + 1280));
+    send(D, { t: 'ptt_stop' });
+    const pte = await waitFor(C, 'talk_end', (m) => m.user.nome === 'Sara Gialli');
     ok(Buffer.concat(C.bins).equals(prAudio) && pte.msg.privato.uid === C.welcome.me.uid, 'la voce privata arriva intatta solo a Carlo');
-    ok((await noMsg(G, 'talk_start', 200)) && P.bins.length === 0 && G.bins.length === 0 && D.bins.length === 0, 'nessun altro sente la chiamata privata (neanche la Centrale)');
+    ok((await noMsg(G, 'talk_start', 200)) && P.bins.length === 0 && G.bins.length === 0 && M.bins.length === 0, 'nessun altro sente la chiamata privata');
     const prUrl = `http://127.0.0.1:${PORT}/api/msg/@privato/${pte.msg.id}.wav`;
     ok((await fetch(`${prUrl}?k=${C.welcome.key}`)).ok && (await fetch(`${prUrl}?k=${G.welcome.key}`)).status === 403, 'il vocale privato lo riascoltano solo i due interessati');
     send(M, { t: 'ptt_start', privato: M.welcome.me.uid });
     ok(/te stesso/.test((await waitFor(M, 'ptt_fail')).msg), 'non si può chiamare sé stessi');
-    send(C, { t: 'text', text: 'Ci vediamo in piazza', privato: M.welcome.me.uid });
-    const [ptC, ptM] = await Promise.all([waitFor(C, 'text'), waitFor(M, 'text')]);
-    ok(ptM.msg.privato.uid === M.welcome.me.uid && ptC.mio && !ptM.mio && (await noMsg(G, 'text', 200)), 'MESSAGGIO PRIVATO: arriva solo alla persona scelta');
+    send(C, { t: 'text', text: 'Ricevuto, arrivo', privato: D.welcome.me.uid });
+    const [ptC, ptD] = await Promise.all([waitFor(C, 'text'), waitFor(D, 'text')]);
+    ok(ptD.msg.privato.uid === D.welcome.me.uid && ptC.mio && !ptD.mio && (await noMsg(G, 'text', 200)), 'chi è stato chiamato dalla Centrale può RISPONDERE in privato');
+    send(M, { t: 'text', text: 'ciao', privato: C.welcome.me.uid });
+    ok((await waitFor(M, 'error')).code === 'privato' && (await noMsg(C, 'text', 200)), 'MESSAGGIO PRIVATO tra fazioni diverse: bloccato');
 
     // ---------------------------------------------------- stato operativo e rubrica
     M.msgs = [];

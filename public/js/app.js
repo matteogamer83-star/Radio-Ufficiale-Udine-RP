@@ -11,7 +11,7 @@ import { modal, toast, popover } from './ui-kit.js';
 import { device } from './device.js';
 import { ui, dialogs } from './ui.js';
 
-export const APP_VERSION = '3.0.0'; // uguale a package.json: se il server è più nuovo la pagina si ricarica da sola
+export const APP_VERSION = '3.1.0'; // uguale a package.json: se il server è più nuovo la pagina si ricarica da sola
 const PROTO = 3; // audio con il numero della trasmissione (per sentire più canali insieme)
 
 export const state = {
@@ -191,6 +191,10 @@ function applySession(m) {
   if (m.roster) state.roster = m.roster;
   if (m.channel) state.channel = m.channel;
   if (!disp.allowed() && state.view === 'console') state.view = 'radio';
+  if (state.channel && m.channels) {
+    const c = m.channels.find((x) => x.id === state.channel.id);
+    if (c) state.channel = c;
+  }
   syncMonitor();
   ui.refresh(true);
   if (RadioApp.onSession) RadioApp.onSession();
@@ -544,7 +548,7 @@ export const rx = {
   /** Scansione: se parla qualcuno nel tuo canale, i canali scansionati tacciono (priorità al canale principale) */
   muted(n) {
     const t = this.talks.get(n);
-    if (!t || !t.via || disp.allowed()) return false;
+    if (!t || !t.via || disp.perm()) return false;
     for (const x of this.talks.values()) if (!x.via && x.n !== n) return true;
     return false;
   },
@@ -1055,8 +1059,8 @@ function onRichiestaAck(m) {
 }
 
 // ================================================================== Centrale operativa
-// Chi ha il permesso "Centrale" collega più canali: parla a tutti insieme (con priorità),
-// sente le loro risposte e manda comunicati (notizia, allerta, emergenza).
+// Si parla alle altre radio SOLO dai canali che lo permettono (di base Centrale e Staff, poi quelli scelti dal Founder).
+// Chi ha anche il permesso "Centrale" ha la priorità, sente le risposte, riceve le chiamate e manda i comunicati.
 const DISP_DEFAULT = { on: false, tutti: false, canali: [], ascolta: true };
 export const disp = {
   cfg: Object.assign({}, DISP_DEFAULT),
@@ -1074,12 +1078,28 @@ export const disp = {
   save() {
     if (this.uid) store.set('disp:' + this.uid, this.cfg);
   },
-  allowed() {
+  /** Ha il permesso "Centrale operativa" (comunicati, priorità, ascolto, chiamate da tutti) */
+  perm() {
     return !!(state.perms && state.perms.diramazione);
   },
-  /** Tutti i canali che posso collegare: quelli che vedo, tranne l'eco. I canali nuovi compaiono da soli */
+  /** Le radio con cui si può parlare dal canale in cui sei (lo decide il canale) */
+  verso() {
+    return new Set((state.channel && !state.channel.eco && state.channel.verso) || []);
+  },
+  /** Da questo canale posso parlare alle altre radio? */
+  canSend() {
+    return this.verso().size > 0;
+  },
+  /** Barra e console della Centrale: per chi ha il permesso o è in un canale che parla con le altre radio */
+  allowed() {
+    return this.perm() || this.canSend();
+  },
+  /** Canali che posso collegare: con il permesso tutti (almeno per ascoltarli), altrimenti quelli permessi dal mio canale */
   eligible() {
-    return state.channels.filter((c) => !c.eco);
+    if (this.perm()) return state.channels.filter((c) => !c.eco);
+    const v = this.verso();
+    const cur = state.channel && state.channel.id;
+    return state.channels.filter((c) => c.id === cur || v.has(c.id));
   },
   linked(id) {
     return this.cfg.tutti || this.cfg.canali.includes(id);
@@ -1088,10 +1108,12 @@ export const disp = {
   active() {
     return this.allowed() && this.cfg.on && !!state.channel && !state.channel.eco;
   },
+  /** Canali a cui parlo davvero con la prossima trasmissione */
   targets() {
-    if (!this.active()) return [];
+    if (!this.active() || !this.canSend()) return [];
     const cur = state.channel.id;
-    return this.eligible().filter((c) => c.id !== cur && this.linked(c.id));
+    const v = this.verso();
+    return this.eligible().filter((c) => c.id !== cur && this.linked(c.id) && v.has(c.id));
   },
   targetIds() {
     return this.targets().map((c) => c.id);
@@ -1099,7 +1121,7 @@ export const disp = {
 
   // ---- coda delle chiamate e risposta veloce
   push(item) {
-    if (!this.allowed() && !(state.channel && state.channel.sos)) return;
+    if (!this.perm() && !(state.channel && state.channel.sos)) return;
     this.calls = [item, ...this.calls.filter((x) => x.id !== item.id)].slice(0, 14);
     ui.refresh();
   },
@@ -1124,6 +1146,7 @@ export const disp = {
   armReply(canale) {
     if (!this.allowed() || !canale) return;
     if (state.channel && canale.id === state.channel.id) return toast('Sei già in quel canale: tieni premuto e parla');
+    if (!this.verso().has(canale.id)) return dialogs.goCentrale(`Da qui non puoi parlare con ${canale.icona} ${canale.nome}.`);
     this.reply = { ...canale, ts: Date.now() };
     ui.refresh();
     toast(`Tieni premuto e parla: rispondi a ${canale.icona} ${canale.nome}`, { kind: 'cen', icon: 'reply', ms: 4000 });
@@ -1140,11 +1163,11 @@ export const disp = {
   },
   replyTarget() {
     if (this.reply && Date.now() - this.reply.ts > 3 * 60000) this.reply = null; // dopo 3 minuti si annulla
-    return this.allowed() && state.channel && !state.channel.eco ? this.reply : null;
+    return this.reply && this.verso().has(this.reply.id) ? this.reply : null;
   },
-  /** La prossima trasmissione va "come Centrale" (più canali o risposta) */
+  /** La prossima trasmissione va alle altre radio (più canali o risposta): solo dai canali che lo permettono */
   sending() {
-    return this.active() || !!this.replyTarget();
+    return this.canSend() && ((this.active() && this.targets().length > 0) || !!this.replyTarget());
   },
   sendIds() {
     const r = this.replyTarget();
@@ -1162,6 +1185,7 @@ export const disp = {
     this.changed();
     audio.sfx('scan');
     if (!this.cfg.on) return toast('Centrale fuori servizio: parli solo nel tuo canale', { kind: 'cen' });
+    if (!this.canSend()) return toast('In servizio: ricevi le chiamate e ascolti i canali collegati. Per PARLARE alle altre radio vai nel canale della Centrale.', { kind: 'cen', ms: 6000 });
     const n = this.targets().length;
     toast(n ? `Centrale in servizio: parli a ${n + 1} canali insieme` : 'Centrale in servizio: scegli i canali da collegare (o «Tutti»)', { kind: 'cen', ms: 4500 });
   },
@@ -1238,10 +1262,9 @@ let lastMon = '';
 export function syncMonitor() {
   if (!state.online) return;
   const cur = state.channel && state.channel.id;
-  const allowed = disp.allowed();
-  const attivo = allowed && disp.cfg.on;
+  const attivo = disp.perm() && disp.cfg.on; // "in servizio": riceve le chiamate da tutti i canali
   let ids = [];
-  if (attivo) {
+  if (disp.allowed() && disp.cfg.on) {
     if (disp.cfg.ascolta) ids = disp.eligible().filter((c) => c.id !== cur && disp.linked(c.id)).map((c) => c.id);
   } else if (scan.cfg.on) ids = scan.ids();
   const key = (attivo ? 'on:' : 'off:') + ids.join(',');
@@ -1253,12 +1276,24 @@ export function syncMonitor() {
 // ================================================================== chiamate private
 export const priv = {
   target: null, // { uid, nome, sigla, ruolo, ts, auto }
+  replyOk: new Map(), // chi mi ha chiamato/scritto in privato: posso rispondergli per qualche minuto
+  /** Posso chiamarlo in privato? (stesso canale, canali permessi dal mio, oppure mi ha chiamato lui) */
+  reachable(p) {
+    if (!p || !state.channel) return false;
+    if (p.canale && p.canale === state.channel.id) return true;
+    if (p.canale && disp.verso().has(p.canale)) return true;
+    return (this.replyOk.get(p.uid) || 0) > Date.now();
+  },
   active() {
     if (this.target && Date.now() - this.target.ts > (this.target.auto ? 60000 : 180000)) this.target = null;
     return this.target;
   },
   set(u) {
     if (!u || isMine(u)) return;
+    const p = state.roster.find((x) => x.uid === u.uid) || u;
+    if (!this.reachable(p)) {
+      return toast('In privato puoi chiamare solo chi è nel tuo canale. Per le altre radio passa dalla Centrale (tieni premuto «Parla con la Centrale»).', { kind: 'priv', icon: 'lock', ms: 6500 });
+    }
     this.target = { uid: u.uid, nome: u.nome, sigla: u.sigla, ruolo: u.ruolo, ts: Date.now(), auto: false };
     audio.sfx('scan');
     ui.refresh();
@@ -1267,6 +1302,7 @@ export const priv = {
   /** Qualcuno mi ha chiamato in privato: la risposta è pronta per un minuto */
   incoming(u, text) {
     if (!u || isMine(u)) return;
+    this.replyOk.set(u.uid, Date.now() + 5 * 60000);
     const t = this.active();
     if (t && t.uid !== u.uid) return; // sono già in privato con un altro
     if (t) return this.touch();

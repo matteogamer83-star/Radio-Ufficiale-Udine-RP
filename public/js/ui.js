@@ -555,9 +555,9 @@ export const ui = {
     } else if (disp.active()) {
       const n = disp.targets().length + 1;
       o.mode = 'idle';
-      o.top = n > 1 ? `CENTRALE · ${n} CANALI` : 'CENTRALE IN SERVIZIO';
+      o.top = !disp.canSend() ? 'IN SERVIZIO · ASCOLTO' : n > 1 ? `CENTRALE · ${n} CANALI` : 'CENTRALE IN SERVIZIO';
       o.main = ch ? ch.nome : '';
-      o.sub = n === 1 ? 'Collega i canali dalla console' : disp.cfg.ascolta ? 'Senti anche i canali collegati' : 'Senti solo questo canale';
+      o.sub = !disp.canSend() ? 'Per parlare a tutti: canale Centrale' : n === 1 ? 'Collega i canali dalla console' : disp.cfg.ascolta ? 'Senti anche i canali collegati' : 'Senti solo questo canale';
     } else {
       o.mode = 'idle';
       o.top = scan.cfg.on ? `SCAN · CH ${ch ? chNum(ch) : '--'}` : `CH ${ch ? chNum(ch) : '--'} · IN ASCOLTO`;
@@ -643,7 +643,7 @@ export const ui = {
   // Barra "Parla con la Centrale" (in tutti i canali, tranne quello della Centrale)
   callBar() {
     const bar = $('#callBar');
-    const show = state.loggedIn && canCall() && !disp.allowed();
+    const show = state.loggedIn && canCall() && !disp.canSend();
     bar.hidden = !show;
     if (!show) return;
     const c = state.centrale;
@@ -652,7 +652,7 @@ export const ui = {
     $('#btnCall').classList.toggle('on', calling);
     $('#callTitle').textContent = calling ? 'In chiamata con la Centrale' : 'Parla con la Centrale';
     const key = settings.callKey && finePointer ? ` · tasto ${keyName(settings.callKey)}` : '';
-    $('#callSub').textContent = calling ? (hold ? 'rilascia per chiudere' : 'premi di nuovo per chiudere') : `${c.persone ? c.persone + ' in ascolto' : 'nessuno in Centrale ora'} · ${hold ? 'tieni premuto' : 'premi'}${key}`;
+    $('#callSub').textContent = calling ? (hold ? 'rilascia per chiudere' : 'premi di nuovo per chiudere') : `messaggio vocale · ${c.persone ? c.persone + ' in ascolto' : 'resta registrato'} · ${hold ? 'tieni premuto' : 'premi'}${key}`;
   },
 
   // Barra della Centrale nella vista radio
@@ -661,7 +661,7 @@ export const ui = {
     const show = disp.allowed() && state.loggedIn && state.view !== 'console' && state.mobileTab !== 'console';
     bar.hidden = !show;
     if (!show) return;
-    const sig = JSON.stringify([disp.cfg, disp.targets().length, disp.replyTarget(), disp.calls.filter((c) => !c.done).length]);
+    const sig = JSON.stringify([disp.cfg, disp.targets().length, disp.replyTarget(), disp.calls.filter((c) => !c.done).length, state.channel && state.channel.id, [...disp.verso()]]);
     if (bar.dataset.sig === sig) return;
     bar.dataset.sig = sig;
     bar.textContent = '';
@@ -683,6 +683,14 @@ export const ui = {
     if (pend) cons.append(el('span', 'badge red', String(pend)));
     row.append(cons);
     bar.append(row);
+    if (!disp.canSend()) {
+      const nr = el('div', 'ds-reply');
+      const go = centraleChannel();
+      nr.append(icon('lock'), el('span', null, 'Da questo canale parli solo qui (le fazioni non parlano alle altre radio).'));
+      if (go) nr.append(button(go.nome, 'btn-sm', () => join(go.id), 'right', 'Vai nel canale da cui si parla con tutte le radio'));
+      bar.append(nr);
+      return;
+    }
     const r = disp.replyTarget();
     if (r) {
       const rr = el('div', 'ds-reply armed');
@@ -725,8 +733,8 @@ export const ui = {
       input.placeholder = `Scrivi a ${pt.nome}…`;
     } else if (disp.sending() && n > 1) {
       box.classList.add('cen');
-      box.append(icon('broadcast'), el('span', null, `Scrivi come Centrale a ${n} canali`));
-      input.placeholder = `Scrivi a ${n} canali (come Centrale)…`;
+      box.append(icon('broadcast'), el('span', null, `Scrivi come ${state.channel.nome} a ${n} canali`));
+      input.placeholder = `Scrivi a ${n} canali…`;
     } else {
       input.placeholder = state.channel ? `Scrivi in ${state.channel.nome}…` : 'Scrivi al canale…';
     }
@@ -782,7 +790,8 @@ export const ui = {
       lastConsoleSig = '';
     }
     const cur = state.channel && state.channel.id;
-    const sig = JSON.stringify([disp.cfg, cur, state.channels, disp.calls, disp.replyTarget()]);
+    const verso = disp.verso();
+    const sig = JSON.stringify([disp.cfg, cur, state.channels, disp.calls, disp.replyTarget(), [...verso]]);
     if (sig === lastConsoleSig) return;
     lastConsoleSig = sig;
 
@@ -804,7 +813,20 @@ export const ui = {
       disp.toggleAll();
     }, 'broadcast', 'Tutti i canali, anche quelli creati dopo');
     const lis = button(disp.cfg.ascolta ? 'Ascolto' : 'Muto', 'btn-sm', () => disp.toggleListen(), disp.cfg.ascolta ? 'ear' : 'ear-off', 'Senti le risposte dei canali collegati');
-    head.append(all, lis, button('Comunicato', 'btn-sm btn-primary', () => dialogs.news(), 'megaphone'));
+    head.append(all);
+    if (disp.perm()) head.append(lis, button('Comunicato', 'btn-sm btn-primary', () => dialogs.news(), 'megaphone'));
+    // da un canale che non parla con le altre radio: solo ascolto, con la scorciatoia per la Centrale
+    let note = box.querySelector('.cs-note');
+    if (!disp.canSend()) {
+      if (!note) {
+        note = el('div', 'cs-note');
+        box.insertBefore(note, box.querySelector('.cs-body'));
+      }
+      note.textContent = '';
+      const go = centraleChannel();
+      note.append(icon('lock'), el('span', null, `Da ${state.channel ? state.channel.nome : 'questo canale'} non si parla alle altre radio: qui puoi solo ascoltarle e ricevere le chiamate.`));
+      if (go) note.append(button(`Vai in ${go.nome}`, 'btn-sm btn-primary', () => join(go.id), 'right'));
+    } else if (note) note.remove();
 
     // canali
     const grid = box.querySelector('.cs-grid');
@@ -812,7 +834,8 @@ export const ui = {
     disp.eligible().forEach((c) => {
       const here = c.id === cur;
       const sel = here || (disp.cfg.on && disp.linked(c.id));
-      const t = el('div', 'tile' + (sel && !here ? ' sel' : '') + (here ? ' here' : '') + (c.attivo ? ' live' : '') + (c.parla && c.parla.prio ? ' prio' : ''));
+      const talk = verso.has(c.id);
+      const t = el('div', 'tile' + (sel && !here ? ' sel' : '') + (here ? ' here' : '') + (c.attivo ? ' live' : '') + (c.parla && c.parla.prio ? ' prio' : '') + (!talk && !here ? ' listen' : ''));
       t.setAttribute('role', 'button');
       t.tabIndex = 0;
       const top = el('div', 'tile-top');
@@ -829,6 +852,7 @@ export const ui = {
       if (c.sos) meta.append(icon('siren', 'ico-sm'));
       if (c.protetto) meta.append(icon('lock', 'ico-sm'));
       if (here) meta.append(el('span', 'tile-tag', 'SEI QUI'));
+      else if (!talk) meta.append(el('span', 'tile-tag mute', 'SOLO ASCOLTO'));
       t.append(meta);
       const selBox = el('span', 'tile-sel');
       selBox.append(icon('check'));
@@ -850,7 +874,7 @@ export const ui = {
           toggle();
         }
       };
-      t.title = here ? 'Il canale in cui sei: è sempre incluso' : sel ? 'Collegato: tocca per scollegarlo' : 'Tocca per collegarlo (parli e ascolti anche qui)';
+      t.title = here ? 'Il canale in cui sei: è sempre incluso' : !talk ? 'Da qui puoi solo ascoltarlo' + (sel ? ' (collegato)' : ': tocca per ascoltarlo') : sel ? 'Collegato: tocca per scollegarlo' : 'Tocca per collegarlo (parli e ascolti anche qui)';
       if (!here) {
         const j = button('Entra', 'btn-sm btn-ghost tile-join', (e) => {
           e.stopPropagation();
@@ -1174,7 +1198,25 @@ const LIVELLI = [
   ['emergenza', 'Emergenza', 'siren', "Schermata rossa e SIRENA (anche con l'audio su muto), poi una voce legge messaggio e luogo."],
 ];
 
+/** Il canale da cui si parla con tutte le radio (di solito la Centrale) */
+function centraleChannel() {
+  const withTalk = state.channels.filter((c) => !c.eco && c.verso && c.verso.length);
+  return withTalk.find((c) => c.sos) || withTalk[0] || null;
+}
+
 export const dialogs = {
+  goCentrale(why) {
+    const go = centraleChannel();
+    const body = el('div', 'stack');
+    body.append(el('p', 'muted', why), el('p', null, 'Dalle fazioni si parla solo nel proprio canale: alle altre radio parlano la Centrale e lo Staff (o i canali che il Founder ha abilitato).'));
+    modal.open({
+      title: 'Solo nel tuo canale',
+      icon: 'lock',
+      body,
+      actions: go ? [{ label: 'Resta qui' }, { label: `Vai in ${go.nome}`, cls: 'btn-primary', primary: true, icon: 'right', onClick: () => join(go.id) }] : [{ label: 'Ho capito', cls: 'btn-primary', primary: true }],
+    });
+  },
+
   micHelp() {
     const msgs = {
       insecure: 'Il microfono funziona solo con un indirizzo sicuro che inizia con https:// (oppure aprendo la radio sul PC del server da http://localhost). Intanto puoi ascoltare.',
@@ -1281,7 +1323,12 @@ export const dialogs = {
     luogo.maxLength = 80;
     const c = state.centrale;
     const body = el('div', 'form-grid');
-    body.append(el('p', 'muted', `La richiesta arriva a ${c.icona} ${c.nome}: una voce la legge e ti rispondono appena possono.`), field('Scelta rapida', quick), field('Cosa ti serve', testo), field('Dove sei', luogo));
+    body.append(
+      el('p', 'muted', `La richiesta arriva a ${c.icona} ${c.nome}: una voce la legge e ti rispondono appena possono. Per un messaggio vocale tieni premuto «Parla con la Centrale».`),
+      field('Scelta rapida', quick),
+      field('Cosa ti serve', testo),
+      field('Dove sei', luogo)
+    );
     modal.open({
       title: 'Richiesta alla Centrale',
       icon: 'phone',
@@ -1309,7 +1356,8 @@ export const dialogs = {
 
   // Comunicato della Centrale: notizia / allerta / emergenza a uno, alcuni o tutti i canali
   news() {
-    if (!state.online || !disp.allowed()) return toast('Non sei collegato');
+    if (!state.online || !disp.perm()) return toast('Non hai il permesso di mandare comunicati', { kind: 'bad' });
+    if (!disp.canSend()) return dialogs.goCentrale('I comunicati si mandano dal canale della Centrale (o dello Staff).');
     let livello = 'info';
     const hint = el('small', 'fld-hint', LIVELLI[0][3]);
     const seg = segmented(LIVELLI.map(([v, l, i]) => [v, l, i]), 'info', (v) => {
@@ -1322,10 +1370,11 @@ export const dialogs = {
     testo.placeholder = 'Cosa sta succedendo? es. Rapina in corso alla banca, servono pattuglie';
     const luogo = inputEl('', 'es. Piazza Libertà (facoltativo)');
     luogo.maxLength = 80;
-    const allCk = checkbox('TUTTI i canali', disp.cfg.on && disp.cfg.tutti, 'Anche quelli creati dopo');
+    const allCk = checkbox('TUTTI i canali', disp.cfg.on && disp.cfg.tutti, 'Tutte le radio con cui si parla da qui');
     const list = el('div', 'check-grid');
     const pre = new Set([state.channel && state.channel.id, ...disp.targetIds()]);
-    for (const c of disp.eligible()) {
+    const v = disp.verso();
+    for (const c of state.channels.filter((x) => x.id === state.channel.id || v.has(x.id))) {
       const k = checkbox(`${c.icona} ${c.nome}`, pre.has(c.id), `${c.utenti} ${c.utenti === 1 ? 'persona collegata' : 'persone collegate'}`);
       k.dataset.id = c.id;
       list.append(k);
@@ -1411,12 +1460,14 @@ export const dialogs = {
       t.append(el('b', null, displayName(p)), el('small', null, `${roleInfo(p.ruolo).nome} · ${statoInfo(p.stato).nome}`));
       head.append(t);
       box.append(head);
-      box.append(popover.item('Chiamata privata', 'private', () => priv.set(p), { hint: 'voce' }));
+      const ok = priv.reachable(p);
+      box.append(popover.item('Chiamata privata', 'private', () => priv.set(p), { hint: ok ? 'voce' : 'altra fazione', disabled: !ok }));
       box.append(popover.item('Messaggio privato', 'chat', () => {
         priv.set(p);
         if (mqMobile.matches) ui.mobileTab('registro');
         setTimeout(() => $('#inText').focus(), 80);
-      }, { hint: 'testo' }));
+      }, { hint: ok ? 'testo' : 'altra fazione', disabled: !ok }));
+      if (!ok) box.append(el('p', 'pop-note', 'È in un altro canale: per le altre radio passa dalla Centrale.'));
       const ch = p.canale && state.channels.find((c) => c.id === p.canale);
       if (ch && (!state.channel || ch.id !== state.channel.id)) box.append(popover.item(`Vai in ${ch.nome}`, 'right', () => join(ch.id)));
     });

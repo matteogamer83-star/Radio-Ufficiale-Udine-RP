@@ -1,0 +1,363 @@
+{
+ "version": 5,
+ "secret": "3007dfae8404f254ac9fc0027b7ebea209339f1af8c8bd117622682e44c4d2c6",
+ "settings": {
+  "nomeServer": "Udine RP ITA",
+  "durataMassimaTrasmissione": 60,
+  "messaggiVocaliSalvati": 20
+ },
+ "roles": [
+  {
+   "id": "rdc09f4ab",
+   "nome": "Civile",
+   "icona": "👤",
+   "colore": "#9ca3af",
+   "permessi": {
+    "utenti": false,
+    "canali": false,
+    "tuttiCanali": false,
+    "diramazione": false
+   }
+  },
+  {
+   "id": "re0968f44",
+   "nome": "Polizia di Stato",
+   "icona": "🚓",
+   "colore": "#38bdf8",
+   "permessi": {
+    "utenti": false,
+    "canali": false,
+    "tuttiCanali": false,
+    "diramazione": false
+   }
+  },
+  {
+   "id": "r5a863d41",
+   "nome": "Carabinieri",
+   "icona": "🚔",
+   "colore": "#818cf8",
+   "permessi": {
+    "utenti": false,
+    "canali": false,
+    "tuttiCanali": false,
+    "diramazione": false
+   }
+  },
+  {
+   "id": "r439e8faa",
+   "nome": "Guardia di Finanza",
+   "icona": "🛡️",
+   "colore": "#eab308",
+   "permessi": {
+    "utenti": false,
+    "canali": false,
+    "tuttiCanali": false,
+    "diramazione": false
+   }
+  },
+  {
+   "id": "re920eb94",
+   "nome": "Polizia Locale",
+   "icona": "🚦",
+   "colore": "#2dd4bf",
+   "permessi": {
+    "utenti": false,
+    "canali": false,
+    "tuttiCanali": false,
+    "diramazione": false
+   }
+  },
+  {
+   "id": "r76600f6f",
+   "nome": "118 / Soccorso",
+   "icona": "🚑",
+   "colore": "#fb923c",
+   "permessi": {
+    "utenti": false,
+    "canali": false,
+    "tuttiCanali": false,
+    "diramazione": false
+   }
+  },
+  {
+   "id": "r217a9a86",
+   "nome": "Vigili del Fuoco",
+   "icona": "🚒",
+   "colore": "#ef4444",
+   "permessi": {
+    "utenti": false,
+    "canali": false,
+    "tuttiCanali": false,
+    "diramazione": false
+   }
+  },
+  {
+   "id": "r9f1d95a0",
+   "nome": "Meccanico / ACI",
+   "icona": "🔧",
+   "colore": "#84cc16",
+   "permessi": {
+    "utenti": false,
+    "canali": false,
+    "tuttiCanali": false,
+    "diramazione": false
+   }
+  },
+  {
+   "id": "rd3298729",
+   "nome": "Staff",
+   "icona": "⭐",
+   "colore": "#f472b6",
+   "permessi": {
+    "utenti": true,
+    "canali": true,
+    "tuttiCanali": true,
+    "diramazione": true
+   }
+  },
+  {
+   "id": "rdce11254",
+   "nome": "Operatore Centrale",
+   "icona": "📡",
+   "colore": "#38bdf8",
+   "permessi": {
+    "utenti": false,
+    "canali": false,
+    "tuttiCanali": false,
+    "diramazione": true
+   }
+  }
+ ],
+ "users": [
+  {
+   "id": "cd30365d",
+   "username": "founder",
+   "nome": "Matteo Rossi",
+   "sigla": "Centrale 1",
+   "ruolo": "founder",
+   "attivo": true,
+   "tv": 1,
+   "stato": "disponibile",
+   "creato": 1791820942187,
+   "creatoDa": "prova",
+   "salt": "e25ab42cb9aa3e10531bd0885bc94639",
+   "hash": "87eebc4783db370cf2b8bbf609fd98adbc710f9b3485f55983e45e42d6c8906f",
+   "founder": true,
+   "ultimoAccesso": 1791822776310
+  },
+  {
+   "id": "f2a45c2d",
+   "username": "mario",
+   "nome": "Mario Bianchi",
+   "sigla": "Volante 12",
+   "ruolo": "re0968f44",
+   "attivo": true,
+   "tv": 1,
+   "stato": "disponibile",
+   "creato": 1791820942230,
+   "creatoDa": "prova",
+   "salt": "abacc9d03c60be05f837097f3e705387",
+   "hash": "df702828cd4ab2f35daab98842f4028d49972642deb8f142823313e17eb0048b",
+   "ultimoAccesso": 1791822746255
+  },
+  {
+   "id": "27766ace",
+   "username": "centrale",
+   "nome": "Sara Gialli",
+   "sigla": "Centrale 2",
+   "ruolo": "rdce11254",
+   "attivo": true,
+   "tv": 1,
+   "stato": "intervento",
+   "creato": 1791820942270,
+   "creatoDa": "prova",
+   "salt": "3fabd7b51cb4c4d6803e8c1c61ae1b4a",
+   "hash": "55648220ba777ed67ac0592d5ea9e45a39b8839cde9d66c201ad21ba4b4ff27a",
+   "ultimoAccesso": 1791821233823
+  },
+  {
+   "id": "7c2d9d85",
+   "username": "luca",
+   "nome": "Luca Verdi",
+   "sigla": "Alfa 3",
+   "ruolo": "re0968f44",
+   "attivo": true,
+   "tv": 1,
+   "stato": "disponibile",
+   "creato": 1791820942310,
+   "creatoDa": "prova",
+   "salt": "f096f99074dc50c50978ae828714dc5a",
+   "hash": "1183372b08d39f18c1918939063b235e43c9b0a8ef42db2e17e63f8af64e096f",
+   "ultimoAccesso": 1791822758913
+  }
+ ],
+ "channels": [
+  {
+   "id": "generale",
+   "tg": 2001,
+   "nome": "Generale",
+   "icona": "📻",
+   "descrizione": "Canale libero per tutti",
+   "password": "",
+   "ruoli": [],
+   "riceveSos": false,
+   "eco": false,
+   "parlaCon": {
+    "tutti": false,
+    "canali": []
+   }
+  },
+  {
+   "id": "centrale",
+   "tg": 2002,
+   "nome": "Centrale Operativa 112",
+   "icona": "🚨",
+   "descrizione": "Coordinamento emergenze: riceve tutti gli SOS",
+   "password": "",
+   "ruoli": [],
+   "riceveSos": true,
+   "eco": false,
+   "parlaCon": {
+    "tutti": true,
+    "canali": []
+   }
+  },
+  {
+   "id": "polizia",
+   "tg": 2003,
+   "nome": "Polizia di Stato",
+   "icona": "🚓",
+   "descrizione": "Questura di Udine",
+   "password": "",
+   "ruoli": [],
+   "riceveSos": false,
+   "eco": false,
+   "parlaCon": {
+    "tutti": false,
+    "canali": []
+   }
+  },
+  {
+   "id": "carabinieri",
+   "tg": 2004,
+   "nome": "Carabinieri",
+   "icona": "🚔",
+   "descrizione": "Comando Provinciale di Udine",
+   "password": "",
+   "ruoli": [],
+   "riceveSos": false,
+   "eco": false,
+   "parlaCon": {
+    "tutti": false,
+    "canali": []
+   }
+  },
+  {
+   "id": "gdf",
+   "tg": 2005,
+   "nome": "Guardia di Finanza",
+   "icona": "🛡️",
+   "descrizione": "Comando Provinciale",
+   "password": "",
+   "ruoli": [],
+   "riceveSos": false,
+   "eco": false,
+   "parlaCon": {
+    "tutti": false,
+    "canali": []
+   }
+  },
+  {
+   "id": "polizia-locale",
+   "tg": 2006,
+   "nome": "Polizia Locale",
+   "icona": "🚦",
+   "descrizione": "Comando di Udine",
+   "password": "",
+   "ruoli": [],
+   "riceveSos": false,
+   "eco": false,
+   "parlaCon": {
+    "tutti": false,
+    "canali": []
+   }
+  },
+  {
+   "id": "118",
+   "tg": 2007,
+   "nome": "118 Soccorso",
+   "icona": "🚑",
+   "descrizione": "Emergenza sanitaria",
+   "password": "",
+   "ruoli": [],
+   "riceveSos": false,
+   "eco": false,
+   "parlaCon": {
+    "tutti": false,
+    "canali": []
+   }
+  },
+  {
+   "id": "vvf",
+   "tg": 2008,
+   "nome": "Vigili del Fuoco",
+   "icona": "🚒",
+   "descrizione": "Comando Provinciale",
+   "password": "",
+   "ruoli": [],
+   "riceveSos": false,
+   "eco": false,
+   "parlaCon": {
+    "tutti": false,
+    "canali": []
+   }
+  },
+  {
+   "id": "meccanici",
+   "tg": 2009,
+   "nome": "Soccorso Stradale",
+   "icona": "🔧",
+   "descrizione": "Meccanici e carro attrezzi",
+   "password": "",
+   "ruoli": [],
+   "riceveSos": false,
+   "eco": false,
+   "parlaCon": {
+    "tutti": false,
+    "canali": []
+   }
+  },
+  {
+   "id": "staff",
+   "tg": 2010,
+   "nome": "Staff",
+   "icona": "⭐",
+   "descrizione": "Solo staff del server",
+   "password": "staff2026",
+   "ruoli": [
+    "rd3298729"
+   ],
+   "riceveSos": false,
+   "eco": false,
+   "parlaCon": {
+    "tutti": true,
+    "canali": []
+   }
+  },
+  {
+   "id": "prova-audio",
+   "tg": 2011,
+   "nome": "Prova audio (eco)",
+   "icona": "🔁",
+   "descrizione": "Parla e ti risenti subito: prova mic e casse",
+   "password": "",
+   "ruoli": [],
+   "riceveSos": false,
+   "eco": true,
+   "parlaCon": {
+    "tutti": false,
+    "canali": []
+   }
+  }
+ ]
+}

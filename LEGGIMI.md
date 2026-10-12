@@ -13,7 +13,7 @@ La radio push-to-talk della community **Udine RP ITA**, ricostruita da zero come
 | Novità | Cosa fa |
 |---|---|
 | 🖥️ **Console della Centrale** | Una plancia con tutti i canali: vedi chi parla dove, colleghi i canali con un tocco, hai la coda di chiamate, richieste e SOS con «Rispondi» e «Presa in carico» |
-| 🔒 **Chiamate e messaggi privati** | Dalla Rubrica tocca una persona: parli o scrivi **solo a lei**, da qualsiasi canale. Chi riceve può rispondere subito |
+| 🔒 **Chiamate e messaggi privati** | Dalla Rubrica tocca una persona: parli o scrivi **solo a lei**. Le fazioni solo dentro il proprio canale; dalla Centrale e dallo Staff a chiunque. Chi riceve può rispondere subito |
 | 👥 **Rubrica** | Chi è online adesso, in quale canale e con quale stato (i canali riservati non vengono rivelati) |
 | 🟢 **Stato operativo** | Disponibile, In servizio, In intervento, Occupato, In pausa, Fuori servizio: tutti lo vedono, la Centrale per prima |
 | 📡 **Scansione** | Ascolti anche altri canali senza entrarci (tasto SCAN o ✱). Se parla qualcuno nel tuo canale, ha la precedenza |
@@ -30,15 +30,33 @@ La radio push-to-talk della community **Udine RP ITA**, ricostruita da zero come
 
 | | Founder 👑 | Ruolo con permessi (es. Staff) | Utente normale |
 |---|:-:|:-:|:-:|
-| Parlare, ascoltare, chat, SOS, stato, scansione, privati | ✅ | ✅ | ✅ |
+| Parlare, ascoltare, chat, SOS, stato, scansione nel proprio canale | ✅ | ✅ | ✅ |
+| Messaggi vocali e richieste alla Centrale («Parla con la Centrale») | ✅ | ✅ | ✅ |
 | Creare account, cambiare password, disattivare o eliminare utenti normali | ✅ | ✅ se ha «Gestire gli utenti» | ❌ |
 | Aggiungere o togliere canali, password dei canali | ✅ | ✅ se ha «Gestire i canali» | ❌ |
+| Decidere con quali radio parla un canale | ✅ | ❌ | ❌ |
 | Entrare in tutti i canali senza password | ✅ | ✅ se ha «Accesso a tutti i canali» | ❌ |
-| 📡 Centrale: console, più canali, comunicati | ✅ | ✅ se ha «Centrale operativa» | ❌ |
+| 📡 Centrale: console, priorità, comunicati (dal canale Centrale o Staff) | ✅ | ✅ se ha «Centrale operativa» | ❌ |
 | Panoramica (statistiche, chi è online) | ✅ | ✅ (chi apre il pannello) | ❌ |
 | Registro attività, ruoli, impostazioni, backup e ripristino | ✅ | ❌ | ❌ |
 
 Il Founder è uno solo e si crea alla prima accensione con il **codice di installazione**.
+
+### Le fazioni parlano solo nel proprio canale
+
+Chi è in una fazione (CC, Polizia, GdF, Polizia Locale, 118, VVF, Soccorso Stradale…) **non può mandare niente alle radio degli altri**: niente trasmissioni su più canali, niente comunicati, niente chiamate o messaggi privati a chi è in un altro canale.
+Per dire cosa gli serve o cosa sta succedendo usa la **Centrale**: tiene premuto **📞 Parla con la Centrale** (messaggio vocale, resta registrato anche se in Centrale non c'è nessuno), oppure manda una **Richiesta** scritta o un **SOS**.
+
+Alle altre radio parlano **solo il canale della Centrale Operativa e il canale Staff**: lo decide il **canale**, non il ruolo. Anche il Founder, per parlare a tutti, entra nel canale della Centrale (la console ha il pulsante «Vai in Centrale Operativa 112»).
+Chi ha il permesso «Centrale operativa» resta comunque in ascolto dei canali collegati e riceve le chiamate da qualsiasi canale.
+
+**Abilitare altri canali (solo se vuoi):** 🛡️ → **Canali** → ✏️ sul canale → **Può parlare con le altre radio?**
+
+- **Solo il suo canale**: come le fazioni (è la scelta di base per i canali nuovi)
+- **Tutte le radio**: come la Centrale e lo Staff, anche verso i canali creati dopo
+- **Solo alcune**: spunti tu con quali canali (es. Polizia ↔ 118)
+
+Quello che si manda alle altre radio compare firmato con il **nome del canale** (es. *Centrale Operativa 112*, *Staff*), non con il nome della persona. Solo chi ha anche il permesso «Centrale operativa» ha la **priorità** (interrompe chi sta parlando) e manda i **comunicati**.
 
 ## 2. Mettere la radio su Render (link https fisso)
 
@@ -85,7 +103,7 @@ Il ripristino sostituisce utenti, ruoli, canali e impostazioni. I codici del tas
 | **SOS** | Tieni premuto **SOS** (o il **tasto arancione** sopra la radio) per un secondo, scrivi dove sei e invia |
 | **Stato operativo** | Tasto centrale della radio (**STATO**), tasto `#`, oppure il tuo avatar in alto a destra |
 | **Scansione** | Tasto destro **SCAN** o `✱` sul tastierino. Scegli i canali in ⚙️ → Scansione |
-| **Chiamata privata** | **Rubrica** → tocca la persona → **Chiamata privata** (poi tieni premuto PARLA) o **Messaggio privato**. Il tasto **FINE PR** la chiude |
+| **Chiamata privata** | **Rubrica** → tocca la persona → **Chiamata privata** (poi tieni premuto PARLA) o **Messaggio privato** (solo chi è nel tuo canale, se sei in una fazione). Il tasto **FINE PR** la chiude |
 | **Volume** | Tasti laterali della radio o ⚙️ → Volume |
 | **Riascoltare un vocale** | ▶ nel registro: l'onda avanza mentre ascolti |
 
@@ -93,12 +111,13 @@ Il ripristino sostituisce utenti, ruoli, canali e impostazioni. I codici del tas
 
 Il Founder ce l'ha già; agli altri dai il ruolo **📡 Operatore Centrale** (o spunta **Centrale operativa** in un ruolo tuo).
 
+- Entra nel canale della **Centrale Operativa** (o dello Staff): solo da lì si parla alle altre radio
 - Premi **Console Centrale** (o il tasto destro della radio): vedi tutti i canali con chi sta parlando
 - Accendi **In servizio** e tocca i canali da collegare (o **Tutti**): tieni premuto e parli **a tutti i canali collegati insieme**, con **priorità** (interrompi chi sta parlando)
 - **Ascolto**: senti anche le risposte dei canali collegati
 - A destra c'è la **coda**: chiamate «Parla con la Centrale», richieste scritte e SOS. **Rispondi** prepara la risposta solo a quel canale; **Presa in carico** avvisa chi ha chiesto
 - **Comunicato**: Notizia (avviso e voce), Allerta (schermata arancione, voce due volte), Emergenza (schermata rossa e **sirena** anche col muto). Compare anche come notizia che scorre in alto
-- Tutto quello che manda la Centrale è firmato col nome della Centrale (es. *Centrale Operativa 112*), mai con il nome dell'operatore. Chi l'ha mandato davvero lo vede solo il Founder nel **registro attività**
+- Tutto quello che manda la Centrale è firmato col nome del canale (es. *Centrale Operativa 112*), mai con il nome dell'operatore. Chi l'ha mandato davvero lo vede solo il Founder nel **registro attività**
 
 **Per tutti gli altri**: in ogni canale c'è **📞 Parla con la Centrale** (tieni premuto) e **Richiesta** (scelte rapide: ambulanza, rinforzi, Vigili del Fuoco, carro attrezzi…).
 
@@ -130,5 +149,5 @@ Per far entrare gli amici da fuori: una volta sola `winget install --id Cloudfla
 - **Non vedo la Console**: serve il permesso *Centrale operativa*. Dopo un aggiornamento ricarica la pagina (F5)
 - **La scansione non prende un canale**: i canali con password non si scansionano
 - **Render ci mette tanto ad aprirsi**: nel piano gratis dopo 15 minuti senza nessuno "si addormenta"; il primo accesso può richiedere un minuto
-- **Controllo automatico**: in questa cartella apri PowerShell e scrivi `npm test` (simula Founder, Staff, Centrale e utenti e verifica 117 cose)
+- **Controllo automatico**: in questa cartella apri PowerShell e scrivi `npm test` (simula Founder, Staff, Centrale e utenti e verifica 127 cose)
 - **Provare la grafica senza toccare i dati veri**: `npm run dev` apre una radio di prova su `http://localhost:3011` con account di prova (sono scritti in `test/dev.js`, valgono solo lì)

@@ -155,7 +155,7 @@ function seedData() {
   });
 
   return {
-    version: 4,
+    version: 5,
     secret: rid(32),
     settings: {
       nomeServer: clean(config.nomeServer, 40) || 'Udine RP ITA',
@@ -173,7 +173,7 @@ const CENTRALE_ROLE = { nome: 'Operatore Centrale', icona: '📡', colore: '#38b
 
 function migrate(d) {
   const from = Number(d.version) || 1;
-  d.version = 4;
+  d.version = 5;
   if (!d.secret) d.secret = rid(32);
   d.settings = Object.assign({ nomeServer: 'Udine RP ITA', durataMassimaTrasmissione: 60, messaggiVocaliSalvati: 20 }, d.settings || {});
   d.roles = Array.isArray(d.roles) ? d.roles : [];
@@ -192,11 +192,23 @@ function migrate(d) {
     c.password = c.password || '';
     c.riceveSos = !!c.riceveSos;
     c.eco = !!c.eco;
+    // Con quali altre radio si può parlare da questo canale: di base solo la Centrale e lo Staff parlano con tutti,
+    // le fazioni (CC, Polizia, 118…) parlano solo nel proprio canale. Il Founder lo cambia dal pannello.
+    if (!c.parlaCon || typeof c.parlaCon !== 'object') c.parlaCon = { tutti: !c.eco && (c.riceveSos || isStaffChannel(c, d.roles)), canali: [] };
+    c.parlaCon = { tutti: !!c.parlaCon.tutti && !c.eco, canali: c.eco ? [] : (Array.isArray(c.parlaCon.canali) ? c.parlaCon.canali : []).map(String) };
   }
+  const ids = new Set(d.channels.map((c) => c.id));
+  for (const c of d.channels) c.parlaCon.canali = c.parlaCon.canali.filter((id) => id !== c.id && ids.has(id));
   // numero del gruppo di conversazione (talkgroup), come sulle radio TETRA: resta fisso anche se cambi l'ordine
   for (const c of d.channels) if (!Number.isInteger(c.tg)) c.tg = nextTg(d.channels);
   for (const u of d.users) if (!STATI.includes(u.stato)) u.stato = 'disponibile';
   return d;
+}
+/** Il canale dello Staff: si chiama "staff" o è riservato a un ruolo che gestisce utenti e canali */
+function isStaffChannel(c, roles) {
+  if (c.id === 'staff' || /staff/i.test(c.nome || '')) return true;
+  const admin = (roles || []).filter((r) => r.permessi && r.permessi.utenti && r.permessi.canali).map((r) => r.id);
+  return c.ruoli.length > 0 && c.ruoli.every((id) => admin.includes(id));
 }
 function nextTg(list) {
   return Math.max(2000, ...list.map((c) => (Number.isInteger(c.tg) ? c.tg : 0))) + 1;
@@ -234,6 +246,19 @@ function needsPassword(user, cfg) {
 }
 /** Scansione (solo ascolto) per tutti: i canali che vedi e in cui entreresti senza password */
 const canScan = (user, cfg) => !cfg.eco && canSee(user, cfg) && !needsPassword(user, cfg);
+/**
+ * Le altre radio a cui si può parlare (o scrivere, o mandare comunicati) DAL canale in cui sei.
+ * Lo decide il canale ("Può parlare con le altre radio"), non il ruolo: di base solo Centrale e Staff.
+ */
+function talkTargets(user, cfg) {
+  const out = new Set();
+  if (!cfg || cfg.eco || !cfg.parlaCon) return out;
+  for (const ch of channels.values()) {
+    if (ch.id === cfg.id || ch.cfg.eco || !canSee(user, ch.cfg)) continue;
+    if (cfg.parlaCon.tutti || cfg.parlaCon.canali.includes(ch.id)) out.add(ch.id);
+  }
+  return out;
+}
 /** Chi può modificare chi: il Founder tutto; gli altri solo utenti "normali" (e sé stessi in parte) */
 function canManageUser(actor, target) {
   if (actor.founder) return true;
@@ -404,6 +429,7 @@ function channelInfo(user, ch) {
     parla: t ? { nome: t.from.nome, sigla: t.from.sigla, ruolo: t.from.ruolo, prio: !!t.prio, chiamata: !!t.chiamata } : null,
     sos: ch.cfg.riceveSos,
     eco: ch.cfg.eco,
+    verso: [...talkTargets(user, ch.cfg)], // da qui si può parlare con questi canali
   };
 }
 const channelList = (user) => [...channels.values()].filter((ch) => canSee(user, ch.cfg)).map((ch) => channelInfo(user, ch));
@@ -440,11 +466,16 @@ function centraleStatus() {
   for (const c of activeDispatchers()) people.add(c.user.id);
   return { ...chMini(list[0]), persone: people.size };
 }
-/** Come appare chi parla a nome della Centrale (l'id resta quello della connessione) */
-function centraleUser(conn) {
+/**
+ * Come appare chi parla alle altre radio: con il nome del canale da cui parla (es. "Centrale Operativa 112",
+ * "Staff"), mai con il suo nome. L'id resta quello della connessione.
+ */
+function centraleUser(conn, ch) {
   const list = centraleChannels();
-  return { id: conn.id, uid: 'centrale', nome: list.length ? list[0].cfg.nome : 'Centrale Operativa', sigla: '', ruolo: 'centrale' };
+  const nome = ch ? ch.cfg.nome : list.length ? list[0].cfg.nome : 'Centrale Operativa';
+  return { id: conn.id, uid: 'centrale', nome, sigla: '', ruolo: 'centrale' };
 }
+const asChannel = (conn) => centraleUser(conn, conn.channel && channels.get(conn.channel));
 
 let channelsTimer = null;
 function scheduleChannelsUpdate() {
@@ -635,16 +666,19 @@ function countPeople(list, exceptUid) {
   for (const c of list) if (c.user && c.user.id !== exceptUid) s.add(c.user.id);
   return s.size;
 }
-/** Canale in cui sei + (solo per la Centrale) i canali scelti */
+/** Il canale in cui sei + gli altri canali scelti, SOLO quelli con cui il tuo canale può parlare (es. dalla Centrale o dallo Staff) */
 function pickTargets(conn, ch, msg) {
   const list = [ch];
-  if (!msg.diramazione || ch.cfg.eco || !permsOf(conn.user).diramazione || !Array.isArray(msg.canali)) return list;
+  if (!msg.diramazione || ch.cfg.eco || !Array.isArray(msg.canali)) return list;
+  const ok = talkTargets(conn.user, ch.cfg);
   for (const id of msg.canali.slice(0, 100)) {
     const c = channels.get(String(id));
-    if (c && !list.includes(c) && canTarget(conn.user, c.cfg)) list.push(c);
+    if (c && !list.includes(c) && ok.has(c.id)) list.push(c);
   }
   return list;
 }
+/** Da questo canale si può parlare con le altre radio? */
+const canBroadcast = (user, ch) => !!ch && talkTargets(user, ch.cfg).size > 0;
 
 function talkStartMsg(talk, via) {
   return {
@@ -735,7 +769,7 @@ function endTalk(talk, reason) {
 
 /** La Centrale prende la linea: chi stava parlando viene interrotto */
 function cutTalk(talk, by) {
-  send(talk.conn, { t: 'ptt_cut', by: centraleUser(by) });
+  send(talk.conn, { t: 'ptt_cut', by: asChannel(by) });
   endTalk(talk, 'cut');
 }
 
@@ -795,27 +829,31 @@ function startTalk(conn, msg) {
   // chiamata alla Centrale da un altro canale (se sei già in Centrale parli normalmente)
   if (msg.centrale && !ch.cfg.riceveSos && !ch.cfg.eco) return startCall(conn, ch);
 
-  const prio = !!msg.diramazione && !ch.cfg.eco && permsOf(user).diramazione;
+  // parla alle altre radio solo chi è in un canale che lo permette (Centrale, Staff o canali scelti dal Founder);
+  // la priorità (interrompere chi parla) ce l'ha solo chi ha anche il permesso "Centrale operativa"
+  const multi = !!msg.diramazione && !ch.cfg.eco && canBroadcast(user, ch);
+  const prio = multi && permsOf(user).diramazione;
   const wanted = pickTargets(conn, ch, msg);
   const own = ch.talk;
   if (own && (!prio || own.prio)) return sendBusy(conn, own);
   const list = [];
   const saltati = [];
   for (const c of wanted) {
-    if (c.talk && c.talk.prio) {
-      saltati.push(c.cfg.nome); // un'altra Centrale sta già parlando lì
+    if (c.talk && (c.talk.prio || !prio)) {
+      saltati.push(c.cfg.nome); // lì sta già parlando qualcuno (o un'altra Centrale)
       continue;
     }
     if (c.talk) cutTalk(c.talk, conn);
     list.push(c);
   }
 
-  // chi parla come Centrale compare con il nome della Centrale, non con il suo
-  const { talk, aud, ascoltatori } = openTalk(conn, list, ch, prio ? { prio: true, from: centraleUser(conn) } : {});
+  // chi parla alle altre radio compare con il nome del suo canale (es. Centrale Operativa 112), non con il suo
+  const extra = multi ? { prio, from: asChannel(conn) } : {};
+  const { talk, aud, ascoltatori } = openTalk(conn, list, ch, extra);
   send(conn, { t: 'ptt_ok', maxTalk: maxTalkMs() / 1000, canali: list.length, ascoltatori, saltati, prio });
   for (const [c, via] of aud) send(c, talkStartMsg(talk, via));
   notifyRemote(user, { state: 'on', canale: list.length > 1 ? `${list.length} canali (Centrale)` : ch.cfg.nome, ascoltatori });
-  if (list.length > 1) log(`📡 ${displayName(user)} parla come Centrale su ${list.length} canali: ${list.map((c) => c.cfg.nome).join(', ')}`);
+  if (list.length > 1) log(`📡 ${displayName(user)} parla da ${ch.cfg.nome} su ${list.length} canali: ${list.map((c) => c.cfg.nome).join(', ')}`);
   scheduleChannelsUpdate();
 }
 
@@ -834,12 +872,38 @@ function startCall(conn, ch) {
   scheduleChannelsUpdate();
 }
 
+/**
+ * In privato puoi raggiungere: chi è nel tuo stesso canale, chi è nei canali con cui il tuo canale può parlare
+ * (dalla Centrale e dallo Staff: tutti) e chi ti ha chiamato/scritto in privato negli ultimi minuti (per rispondere).
+ * Le fazioni quindi non scrivono e non chiamano le radio delle altre fazioni.
+ */
+const privReply = new Map(); // "chi->a chi" -> fino a quando può rispondere
+const PRIV_REPLY_MS = 5 * 60000;
+function canReach(conn, targetUid) {
+  const ch = conn.channel && channels.get(conn.channel);
+  if (!ch) return false;
+  const dest = webOfUid(targetUid);
+  if (dest.some((c) => c.channel === ch.id)) return true;
+  const ok = talkTargets(conn.user, ch.cfg);
+  if (dest.some((c) => c.channel && ok.has(c.channel))) return true;
+  return (privReply.get(conn.user.id + '>' + targetUid) || 0) > Date.now();
+}
+function notePrivate(fromUid, toUid) {
+  privReply.set(toUid + '>' + fromUid, Date.now() + PRIV_REPLY_MS);
+  if (privReply.size > 2000) {
+    const now = Date.now();
+    for (const [k, v] of privReply) if (v < now) privReply.delete(k);
+  }
+}
+const UNREACHABLE = 'Puoi chiamare o scrivere in privato solo a chi è nel tuo canale. Per le altre radio passa dalla Centrale.';
+
 /** Chiamata privata (come la "chiamata individuale" delle radio TETRA): ti sente solo quella persona */
 function startPrivate(conn, ch, uid) {
   const target = db.users.find((u) => u.id === uid);
   if (!target || !target.attivo) return send(conn, { t: 'ptt_fail', msg: 'Questa persona non esiste più.' });
   if (target.id === conn.user.id) return send(conn, { t: 'ptt_fail', msg: 'Non puoi chiamare te stesso.' });
   if (!webOfUid(target.id).length) return send(conn, { t: 'ptt_fail', msg: `${displayName(target)} non è collegato alla radio adesso.` });
+  if (!canReach(conn, target.id)) return send(conn, { t: 'ptt_fail', msg: UNREACHABLE });
   const busy = privBusy(target.id) || privBusy(conn.user.id);
   if (busy) {
     notifyRemote(conn.user, { state: 'busy', da: busy.from.nome });
@@ -847,6 +911,7 @@ function startPrivate(conn, ch, uid) {
   }
   const { talk, aud, ascoltatori } = openTalk(conn, [], ch, { privato: { uid: target.id, a: userMini(target) } });
   privTalks.add(talk);
+  notePrivate(conn.user.id, target.id);
   send(conn, { t: 'ptt_ok', maxTalk: maxTalkMs() / 1000, canali: 0, ascoltatori, saltati: [], privato: true });
   for (const [c, via] of aud) send(c, talkStartMsg(talk, via));
   notifyRemote(conn.user, { state: 'on', canale: `Privata con ${target.nome}`, ascoltatori });
@@ -1194,6 +1259,7 @@ async function importBackup(conn, text) {
       ruoli: (Array.isArray(c.ruoli) ? c.ruoli : []).filter((id) => roleIds.has(id)),
       riceveSos: !!c.riceveSos,
       eco: !!c.eco,
+      parlaCon: c.parlaCon && typeof c.parlaCon === 'object' ? { tutti: !!c.parlaCon.tutti, canali: Array.isArray(c.parlaCon.canali) ? c.parlaCon.canali.map(String) : [] } : undefined,
     })),
   };
   for (const r of data.roles) for (const k of Object.keys(r.permessi)) if (!(k in NO_PERMS)) delete r.permessi[k];
@@ -1305,16 +1371,28 @@ async function request(conn, msg) {
         riceveSos: !!msg.riceveSos,
         eco: !!msg.eco,
       };
+      // "Può parlare con le altre radio" (tutte o solo alcune): lo decide solo il Founder
+      const parlaCon = (self) => {
+        const pc = msg.parlaCon || {};
+        const ids = new Set(db.channels.map((c) => c.id));
+        return {
+          tutti: !!pc.tutti && !data.eco,
+          canali: data.eco ? [] : [...new Set((Array.isArray(pc.canali) ? pc.canali : []).map(String))].filter((id) => id !== self && ids.has(id)),
+        };
+      };
       if (msg.id) {
         const c = db.channels.find((x) => x.id === msg.id);
         need(c, 'Canale non trovato.');
         Object.assign(c, data);
+        if (p.founder && msg.parlaCon) c.parlaCon = parlaCon(c.id);
+        if (c.eco) c.parlaCon = { tutti: false, canali: [] };
         act('admin', `@${u.username} ha modificato il canale ${data.nome}`);
       } else {
         need(db.channels.length < 60, 'Troppi canali (massimo 60).');
         let id = slug(data.nome);
         while (db.channels.some((x) => x.id === id)) id = slug(data.nome).slice(0, 18) + '-' + rid(2);
-        db.channels.push({ id, tg: nextTg(db.channels), ...data });
+        const pc = p.founder && msg.parlaCon ? parlaCon(id) : { tutti: false, canali: [] };
+        db.channels.push({ id, tg: nextTg(db.channels), ...data, parlaCon: pc });
         act('admin', `@${u.username} ha creato il canale ${data.nome}`);
       }
       afterChange();
@@ -1326,6 +1404,7 @@ async function request(conn, msg) {
       const gone = db.channels.find((x) => x.id === msg.id);
       need(gone, 'Canale non trovato.');
       db.channels = db.channels.filter((x) => x.id !== msg.id);
+      for (const c of db.channels) c.parlaCon.canali = c.parlaCon.canali.filter((id) => id !== msg.id);
       act('admin', `@${u.username} ha eliminato il canale ${gone.nome}`);
       afterChange();
       return {};
@@ -1474,17 +1553,20 @@ function handleWeb(conn, msg) {
         if (!target || !target.attivo || target.id === user.id) return send(conn, { t: 'error', code: 'privato', msg: 'Non puoi scrivere a questa persona.' });
         const dest = webOfUid(target.id);
         if (!dest.length) return send(conn, { t: 'error', code: 'privato', msg: `${displayName(target)} non è collegato adesso: il messaggio non è stato inviato.` });
+        if (!canReach(conn, target.id)) return send(conn, { t: 'error', code: 'privato', msg: UNREACHABLE });
+        notePrivate(user.id, target.id);
         const m = { tipo: 'testo', id: rid(), from: publicUser(conn), ts: now, testo, privato: userMini(target) };
         for (const c of dest) send(c, { t: 'text', msg: m, via: null, mio: false });
         for (const c of webOfUid(user.id)) send(c, { t: 'text', msg: m, via: null, mio: true });
         break;
       }
-      // la Centrale ("Più canali" acceso) scrive a più canali insieme, con il nome della Centrale
-      const asCentrale = !!msg.diramazione && !ch.cfg.eco && permsOf(user).diramazione;
+      // dalla Centrale e dallo Staff (o dai canali scelti dal Founder) si scrive a più canali insieme,
+      // firmato con il nome del canale
+      const asCentrale = !!msg.diramazione && !ch.cfg.eco && canBroadcast(user, ch);
       const list = pickTargets(conn, ch, msg);
-      const m = { tipo: 'testo', id: rid(), from: asCentrale ? centraleUser(conn) : publicUser(conn), ts: now, testo };
+      const m = { tipo: 'testo', id: rid(), from: asCentrale ? asChannel(conn) : publicUser(conn), ts: now, testo };
       if (list.length > 1) m.canali = list.length;
-      if (asCentrale) log(`📡 Messaggio della Centrale (${displayName(user)}) a ${list.length} canali: ${testo}`);
+      if (asCentrale) log(`📡 Messaggio da ${ch.cfg.nome} (${displayName(user)}) a ${list.length} canali: ${testo}`);
       for (const c of list) pushText(c, m);
       const aud = audienceOf(list);
       aud.set(conn, null);
@@ -1493,20 +1575,25 @@ function handleWeb(conn, msg) {
     }
 
     // Comunicato della Centrale: notizia, allerta o emergenza ai canali scelti.
-    // Compare come "Centrale", non con il nome di chi lo manda (resta solo nei log del server).
+    // Serve il permesso "Centrale operativa" E stare in un canale che può parlare con le altre radio.
+    // Compare con il nome del canale (es. "Centrale Operativa 112"), non con quello di chi lo manda (lo vede solo il Founder).
     case 'annuncio': {
       if (!permsOf(user).diramazione) return send(conn, { t: 'error', code: 'perm', msg: 'Non hai il permesso di mandare comunicati.' });
+      if (!ch || !canBroadcast(user, ch)) {
+        return send(conn, { t: 'error', code: 'canale', msg: 'Da questo canale non si parla con le altre radio: i comunicati si mandano dal canale della Centrale o dello Staff.' });
+      }
       const now = Date.now();
       if (now - (conn.lastNews || 0) < 1500) return send(conn, { t: 'error', code: 'rate', msg: 'Aspetta qualche secondo prima di mandare un altro comunicato.' });
       const testo = clean(msg.text, 300);
       if (!testo) return send(conn, { t: 'error', code: 'dati', msg: 'Scrivi il testo del comunicato.' });
+      const ok = talkTargets(user, ch.cfg);
       let list;
-      if (msg.tutti) list = [...channels.values()].filter((c) => canTarget(user, c.cfg));
+      if (msg.tutti) list = [ch, ...[...channels.values()].filter((c) => ok.has(c.id))];
       else {
         list = [];
         for (const id of (Array.isArray(msg.canali) ? msg.canali : []).slice(0, 100)) {
           const c = channels.get(String(id));
-          if (c && !list.includes(c) && canTarget(user, c.cfg)) list.push(c);
+          if (c && !list.includes(c) && (c === ch || ok.has(c.id))) list.push(c);
         }
       }
       if (!list.length) return send(conn, { t: 'error', code: 'dati', msg: 'Scegli almeno un canale a cui mandare il comunicato.' });
@@ -1514,12 +1601,12 @@ function handleWeb(conn, msg) {
       const m = {
         tipo: 'annuncio',
         id: rid(),
-        from: centraleUser(conn),
+        from: asChannel(conn),
         ts: now,
         livello: LIVELLI.includes(msg.livello) ? msg.livello : 'info',
         testo,
         luogo: clean(msg.luogo, 80),
-        tutti: !!msg.tutti,
+        tutti: !!msg.tutti && ch.cfg.parlaCon.tutti,
         canali: list.map(chMini),
         presoDa: [],
       };

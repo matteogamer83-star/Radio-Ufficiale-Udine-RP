@@ -332,6 +332,9 @@
 .stage-main.cm .ptt-ico { width: 26px; height: 26px; }
 .stage-main.cm .ptt-label { font-size: 16px; }
 .stage-main.cm .ptt-sub { font-size: 11px; }
+.stage-main.cm .callbar { flex-direction: column; }
+.stage-main.cm .call-txt small { display: none; }
+.stage-main.cm .call-req { min-height: 40px; justify-content: center; }
 .console { flex: 1; min-height: 0; width: 100%; max-width: 1180px; margin: 0 auto; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 12px; align-self: stretch; }
 .cs-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border-radius: 16px; background: linear-gradient(180deg, rgba(62, 201, 255, 0.10), rgba(62, 201, 255, 0.04)); border: 1px solid rgba(62, 201, 255, 0.25); }
 .cs-head .ds-title { font-size: 13px; }
@@ -365,6 +368,13 @@
 .tile.live { box-shadow: 0 0 0 1px rgba(54, 224, 125, 0.45), 0 0 24px -6px rgba(54, 224, 125, 0.45); }
 .tile.live.prio { box-shadow: 0 0 0 1px rgba(62, 201, 255, 0.5), 0 0 24px -6px rgba(62, 201, 255, 0.5); }
 .tile .tile-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: var(--amber); }
+.tile .tile-tag.mute { color: var(--tx-3); }
+.tile.listen { background: var(--bg-0); border-style: dashed; }
+.tile.listen.sel { background: rgba(62, 201, 255, 0.04); }
+.cs-note { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 181, 46, 0.07); border: 1px solid rgba(255, 181, 46, 0.25); color: #ffe1a3; font-size: 13.5px; }
+.cs-note > span { flex: 1; min-width: 0; }
+.cs-note .ico { width: 18px; height: 18px; flex: none; }
+.console:has(.cs-note) { grid-template-rows: auto auto auto minmax(0, 1fr); }
 .tile-join { margin-top: 4px; }
 .cs-queue { min-height: 0; overflow: auto; display: grid; gap: 8px; align-content: start; padding: 12px; border-radius: 16px; background: var(--bg-1); border: 1px solid var(--line); }
 .cs-queue h3 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tx-2); display: flex; align-items: center; gap: 8px; }
